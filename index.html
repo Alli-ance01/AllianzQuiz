@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AllianzQuiz - Online CBT Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="login-page">
+
+    <div class="card login-card">
+        <div class="login-header">
+            <div class="login-icon">🎓</div>
+            <h1>Welcome to AllianzQuiz</h1>
+            <p style="color: var(--text-muted);">Enter your details to start testing your knowledge.</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Full Name</label>
+                <input type="text" id="username" placeholder="e.g. John Doe" required>
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="john@example.com" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Enter Dashboard
+            </button>
+        </form>
+    </div>
+
+    <script src="assets/js/logic.js"></script>
+</body>
+
+</html>

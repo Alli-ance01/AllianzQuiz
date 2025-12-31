@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body style="padding-top: 60px;">
+    <div class="timer-badge" id="timerDisplay">00:00</div>
+    <nav
+        style="background: white; border-bottom: 1px solid #E5E7EB; position: fixed; top: 0; width: 100%; z-index: 90; height: 60px; display: flex; align-items: center;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: 600;" id="quizTitle">Loading...</div>
+            <div>Question <span id="currentQNum">1</span> / <span id="totalQNum">0</span></div>
+        </div>
+    </nav>
+    <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+    </div>
+    <main class="container quiz-layout">
+        <aside class="question-palette">
+            <h3>Palette</h3>
+            <div id="paletteGrid" class="palette-grid"></div>
+            <button onclick="submitQ()" class="btn"
+                style="width: 100%; margin-top: 2rem; border: 2px solid red; color: red;">Submit</button>
+        </aside>
+        <section class="question-area">
+            <h2 id="questionText" style="margin-bottom: 1.5rem;">Loading...</h2>
+            <div id="optionsContainer" class="option-group"></div>
+            <div class="nav-controls">
+                <button onclick="prevQ()" id="prevBtn" class="btn">Prev</button>
+                <button onclick="toggleFlag()" id="flagBtn" class="btn"
+                    style="background: #FEF3C7; color: #92400E;">Flag</button>
+                <button onclick="nextQ()" id="nextBtn" class="btn btn-primary">Next</button>
+            </div>
+        </section>
+    </main>
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/logic.js"></script>
+    <script src="assets/js/quiz.js"></script>
+</body>
+
+</html>

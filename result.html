@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 auto 2rem;
+            border: 8px solid #E5E7EB;
+            color: var(--primary-color);
+        }
+
+        .score-circle.pass {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .score-circle.fail {
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+
+        .review-card {
+            border: 1px solid #E5E7EB;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+
+        .review-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-correct {
+            background-color: #DEF7EC;
+            color: #03543F;
+        }
+
+        .status-wrong {
+            background-color: #FDE8E8;
+            color: #9B1C1C;
+        }
+    </style>
+</head>
+
+<body>
+    <nav style="background: white; box-shadow: var(--shadow-sm); padding: 1rem 0;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <div
+                style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--primary-color); font-size: 1.25rem;">
+                <span>🎓</span> AllianzQuiz Results
+            </div>
+            <a href="dashboard.html" class="btn" style="color: grey; font-size: 0.9rem;">Back</a>
+        </div>
+    </nav>
+    <main class="container" style="max-width: 800px; margin-top: 3rem; padding-bottom: 3rem;">
+        <div class="card" style="text-align: center; margin-bottom: 2rem;">
+            <div id="scoreCircle" class="score-circle">--%</div>
+            <h1 id="resultTitle" style="margin-bottom: 0.5rem;">Completed!</h1>
+            <p id="resultSummary" style="color: grey; font-size: 1.1rem; margin-bottom: 2rem;">Loading...</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="dashboard.html" class="btn" style="background: #F3F4F6;">Home</a>
+                <button onclick="window.print()" class="btn btn-primary">Print</button>
+            </div>
+        </div>
+        <h2 style="margin-bottom: 1.5rem;">Review</h2>
+        <div id="reviewContainer"></div>
+    </main>
+    <script src="assets/js/logic.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let resultStr = localStorage.getItem('cbt_last_result');
+            if (!resultStr) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            let res = JSON.parse(resultStr);
+            let percentage = res.percentage;
+            let isPass = percentage >= 50;
+            let circle = document.getElementById('scoreCircle');
+            circle.textContent = percentage + "%";
+            if (isPass) {
+                circle.classList.add('pass');
+            } else {
+                circle.classList.add('fail');
+            }
+            document.getElementById('resultTitle').textContent = isPass ? 'Great Job!' : 'Keep Practicing!';
+            document.getElementById('resultSummary').textContent = "You scored " + res.score + " out of " + res.total + " correctly.";
+            let container = document.getElementById('reviewContainer');
+            let html = "";
+            for (let i = 0; i < res.details.length; i++) {
+                let item = res.details[i];
+                let statusClass = item.isCorrect ? 'status-correct' : 'status-wrong';
+                let statusText = item.isCorrect ? 'Correct' : 'Incorrect';
+                html += '<div class="review-card">' +
+                    '<div class="review-header">' +
+                    '<span style="color: grey;">Q' + (i + 1) + '.</span>' +
+                    '<span style="flex-grow: 1;">' + item.text + '</span>' +
+                    '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                    '</div>' +
+                    '<div style="display: grid; gap: 0.5rem; font-size: 0.9rem;">' +
+                    '<div style="color: grey;">Your Answer: <span style="color: black; font-weight: 500;">' + (item.selectedOption || 'Skipped') + '</span></div>' +
+                    (!item.isCorrect ? '<div style="color: green;">Correct Answer: <span style="font-weight: 600;">' + item.correctKey + '</span></div>' : '') +
+                    '</div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
+        });
+    </script>
+</body>
+
+</html>
