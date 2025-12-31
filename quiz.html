@@ -11,11 +11,10 @@
 
 <body style="padding-top: 60px;">
     <div class="timer-badge" id="timerDisplay">00:00</div>
-    <nav
-        style="background: white; border-bottom: 1px solid #E5E7EB; position: fixed; top: 0; width: 100%; z-index: 90; height: 60px; display: flex; align-items: center;">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+    <nav class="main-nav" style="position: fixed; top: 0; width: 100%; z-index: 90; height: 60px;">
+        <div class="container nav-content">
             <div style="font-weight: 600;" id="quizTitle">Loading...</div>
-            <div>Question <span id="currentQNum">1</span> / <span id="totalQNum">0</span></div>
+            <div style="font-size: 0.9rem;">Q <span id="currentQNum">1</span> / <span id="totalQNum">0</span></div>
         </div>
     </nav>
     <div class="progress-container">
