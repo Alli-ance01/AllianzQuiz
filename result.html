@@ -7,6 +7,7 @@
     <title>Quiz Results</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .score-circle {
             width: 150px;
@@ -72,7 +73,10 @@
             <div class="brand">
                 <span>🎓</span> AllianzQuiz Results
             </div>
-            <a href="dashboard.html" class="btn" style="color: grey; font-size: 0.9rem;">Back</a>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button id="themeToggleBtn" class="theme-toggle">🌙</button>
+                <a href="dashboard.html" class="btn" style="color: grey; font-size: 0.9rem;">Back</a>
+            </div>
         </div>
     </nav>
     <main class="container" style="max-width: 800px; margin-top: 3rem; padding-bottom: 3rem;">
