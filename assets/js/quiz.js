@@ -12,21 +12,36 @@ function quizInit() {
     let quizId = params.get('id');
 
     if (!quizId) {
-        alert("No quiz specified!");
-        window.location.href = 'dashboard.html';
+        Swal.fire({
+            title: 'Error!',
+            text: 'No quiz specified!',
+            icon: 'error',
+            confirmButtonText: 'Back to Dashboard'
+        }).then(() => {
+            window.location.href = 'dashboard.html';
+        });
         return;
     }
 
-    for (let i = 0; i < myData.length; i++) {
-        if (myData[i].id === quizId) {
-            myQuizData = myData[i];
+    let customQuizzes = JSON.parse(localStorage.getItem('cbt_custom_quizzes') || '[]');
+    let allQuizzes = [...myData, ...customQuizzes];
+
+    for (let i = 0; i < allQuizzes.length; i++) {
+        if (allQuizzes[i].id === quizId) {
+            myQuizData = JSON.parse(JSON.stringify(allQuizzes[i]));
             break;
         }
     }
 
     if (!myQuizData) {
-        alert("Quiz not found!");
-        window.location.href = 'dashboard.html';
+        Swal.fire({
+            title: 'Quiz Not Found',
+            text: 'The requested quiz does not exist.',
+            icon: 'warning',
+            confirmButtonText: 'Back to Dashboard'
+        }).then(() => {
+            window.location.href = 'dashboard.html';
+        });
         return;
     }
 
@@ -42,8 +57,44 @@ function quizInit() {
     timeLft = myQuizData.duration * 60;
 
     renderPal();
-    loadQ(0);
-    startT();
+    showStartModal();
+}
+
+function showStartModal() {
+    Swal.fire({
+        title: myQuizData.title,
+        html: `
+            <div style="text-align: left; margin-top: 1rem;">
+                <p style="margin-bottom: 1rem; color: var(--text-muted); opacity: 0.8;">${myQuizData.description}</p>
+                <h4 style="margin-bottom: 0.8rem; font-weight: 600;">Quick Rules:</h4>
+                <ul style="padding-left: 1.5rem; line-height: 1.6;">
+                    <li>You have <strong>${myQuizData.duration} minutes</strong> to complete the quiz.</li>
+                    <li>There are <strong>${myQuizData.questions.length} questions</strong> in total.</li>
+                    <li>Questions are randomized for each attempt.</li>
+                    <li>You can flag questions to review them later.</li>
+                    <li>The quiz auto-submits when the timer reaches zero.</li>
+                </ul>
+                <p style="margin-top: 1.5rem; text-align: center; font-weight: 600; color: var(--primary-color); font-size: 1.1rem;">Good Luck! 🚀</p>
+            </div>
+        `,
+        icon: 'info',
+        background: 'var(--card-bg)',
+        color: 'var(--text-color)',
+        confirmButtonText: 'Start Quiz Now',
+        confirmButtonColor: 'var(--primary-color)',
+        showCancelButton: true,
+        cancelButtonText: 'Start Later',
+        cancelButtonColor: '#6B7280',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            loadQ(0);
+            startT();
+        } else {
+            window.location.href = 'dashboard.html';
+        }
+    });
 }
 
 function startT() {
@@ -118,7 +169,11 @@ function toggleFlag() {
 }
 
 function selAns(qId, optionIndex) {
-    myAnswers[qId] = optionIndex;
+    if (myAnswers[qId] === optionIndex) {
+        delete myAnswers[qId];
+    } else {
+        myAnswers[qId] = optionIndex;
+    }
     loadQ(currentQIdx);
 }
 
@@ -162,8 +217,26 @@ function renderPal() {
 }
 
 function submitQ(auto) {
-    if (!auto && !confirm("Are you sure?")) return;
+    if (auto) {
+        executeSubmit();
+    } else {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to submit your answers and finish the quiz?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--primary-color)',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, finish it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                executeSubmit();
+            }
+        });
+    }
+}
 
+function executeSubmit() {
     clearInterval(timerInt);
 
     let counts = 0;
@@ -200,7 +273,6 @@ function submitQ(auto) {
 
     localStorage.setItem('cbt_last_result', JSON.stringify(res));
 
-    // Save to history
     let history = JSON.parse(localStorage.getItem('cbt_score_history') || '[]');
     history.push({
         quizId: myQuizData.id,

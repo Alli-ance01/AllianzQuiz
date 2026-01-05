@@ -1,3 +1,26 @@
+function applyTheme() {
+    let saved = localStorage.getItem('cbt_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeIcon();
+}
+
+function toggleTheme() {
+    let current = localStorage.getItem('cbt_theme') || 'light';
+    let next = current === 'light' ? 'dark' : 'light';
+    localStorage.setItem('cbt_theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    let btn = document.getElementById('themeToggleBtn');
+    if (!btn) return;
+    let current = localStorage.getItem('cbt_theme') || 'light';
+    btn.innerHTML = current === 'light' ? '🌙' : '☀️';
+}
+
+applyTheme();
+
 function login(name, email) {
     let user = {
         name: name,
@@ -17,9 +40,21 @@ function getUser() {
     }
 }
 
-function logout() {
-    localStorage.removeItem('cbt_user');
-    window.location.href = 'index.html';
+async function logout() {
+    const result = await Swal.fire({
+        title: 'Logout?',
+        text: 'Are you sure you want to log out?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--primary-color)',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, logout'
+    });
+
+    if (result.isConfirmed) {
+        localStorage.removeItem('cbt_user');
+        window.location.href = 'index.html';
+    }
 }
 
 function checkAuth() {
@@ -29,6 +64,7 @@ function checkAuth() {
 }
 
 function init() {
+    applyTheme();
     let loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', function (e) {
@@ -41,6 +77,11 @@ function init() {
                 window.location.href = 'dashboard.html';
             }
         });
+    }
+
+    let toggleBtn = document.getElementById('themeToggleBtn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleTheme);
     }
 }
 
