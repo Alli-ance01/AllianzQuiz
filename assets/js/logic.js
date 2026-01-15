@@ -52,8 +52,20 @@ async function logout() {
     });
 
     if (result.isConfirmed) {
-        localStorage.removeItem('cbt_user');
-        window.location.href = 'index.html';
+        try {
+            // Import Firebase Auth dynamically to sign out
+            const { auth } = await import('./assets/js/firebase-config.js');
+            const { signOut } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
+            await signOut(auth);
+
+            localStorage.removeItem('cbt_user');
+            window.location.href = 'index.html';
+        } catch (err) {
+            console.error("Logout error:", err);
+            // Fallback: clear local storage anyway
+            localStorage.removeItem('cbt_user');
+            window.location.href = 'index.html';
+        }
     }
 }
 

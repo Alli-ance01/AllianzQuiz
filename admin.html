@@ -8,34 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .admin-section {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .question-form-card {
-            background: var(--bg-color);
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-
-        .remove-q-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            color: var(--error-color);
-            cursor: pointer;
-            font-size: 0.9rem;
-            background: none;
-            border: none;
-        }
-    </style>
 </head>
 
 <body>
@@ -72,7 +44,13 @@
                     <input type="text" id="quizDesc" placeholder="Briefly describe the quiz" required>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-group">
+                    <label for="quizInstructions">Instructions</label>
+                    <textarea id="quizInstructions" placeholder="Enter instructions for the quiz participants..."
+                        style="width: 100%; min-height: 100px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--text-color); font-family: inherit;"></textarea>
+                </div>
+
+                <div class="input-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="input-group">
                         <label for="quizDuration">Duration (minutes)</label>
                         <input type="number" id="quizDuration" placeholder="10" required min="1">
@@ -85,7 +63,7 @@
 
                 <h3 style="margin: 2rem 0 1rem;">Questions</h3>
                 <div id="questionsList">
-                    
+
                 </div>
 
                 <button type="button" onclick="addQuestion()" class="btn"
@@ -102,12 +80,34 @@
         <section class="admin-section">
             <h2 style="margin-bottom: 1.5rem;">Your Custom Quizzes</h2>
             <div id="customQuizList" style="display: grid; gap: 1rem;">
-               
+
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <h2 style="margin-bottom: 1.5rem;">Submission Reviews</h2>
+
+            <div style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                <div class="type-selector" style="margin-bottom: 0;">
+                    <button type="button" class="type-btn active" id="tabPending"
+                        onclick="switchReviewTab('pending')">Pending</button>
+                    <button type="button" class="type-btn" id="tabGraded"
+                        onclick="switchReviewTab('graded')">Graded</button>
+                    <button type="button" class="type-btn" id="tabAll" onclick="switchReviewTab('all')">All</button>
+                </div>
+                <input type="text" id="submissionSearch" placeholder="Search by name or quiz..."
+                    style="flex-grow: 1; padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);"
+                    oninput="loadSubmissions()">
+            </div>
+
+            <div id="submissionsReviewList" style="display: grid; gap: 1rem;">
+                <p style="color: var(--text-muted);">No submissions to review.</p>
             </div>
         </section>
     </main>
 
     <script src="assets/js/logic.js"></script>
+    <script type="module" src="assets/js/auth-status.js"></script>
     <script src="assets/js/admin.js"></script>
 </body>
 

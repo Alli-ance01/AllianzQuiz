@@ -18,7 +18,7 @@
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
                 <button id="themeToggleBtn" class="theme-toggle">🌙</button>
-                <button onclick="logout()" class="btn" style="color: grey; font-size: 0.9rem;">Logout</button>
+                <button onclick="logout()" class="btn btn-secondary" style="font-size: 0.9rem;">Logout</button>
             </div>
         </div>
     </nav>
@@ -37,10 +37,20 @@
             </div>
         </div>
         <h2 style="margin-bottom: 1.5rem;">Quizzes</h2>
-        <div id="quizGrid" class="quiz-grid"></div>
+        <div id="quizGrid" class="quiz-grid" style="margin-bottom: 3rem;"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>Recent History</h2>
+            <button onclick="clearHistory()" class="btn btn-secondary"
+                style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Clear All</button>
+        </div>
+        <div id="historyList" class="history-list">
+            <!-- Loaded via script.js -->
+        </div>
     </main>
     <script src="assets/js/data.js"></script>
     <script src="assets/js/logic.js"></script>
+    <script type="module" src="assets/js/auth-status.js"></script>
     <script src="assets/js/script.js"></script>
 </body>
 
