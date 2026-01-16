@@ -1,6 +1,8 @@
 // Logic.js - Theme management and Firebase Authentication
 
 import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin } from './firebase-auth.js';
+import { showSuccess, showError, confirmAction } from './ui-helpers.js';
+import { clearCache } from './firebase-db.js';
 
 // ==================== THEME MANAGEMENT ====================
 
@@ -99,17 +101,10 @@ export async function getUser() {
 
 // Logout function
 export async function logout() {
-    const result = await Swal.fire({
-        title: 'Logout?',
-        text: 'Are you sure you want to log out?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: 'var(--primary-color)',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, logout'
-    });
+    const confirmed = await confirmAction('Logout?', 'Are you sure you want to log out?', 'Yes, logout');
 
-    if (result.isConfirmed) {
+    if (confirmed) {
+        clearCache();
         await signOutUser();
         window.location.href = 'index.html';
     }
@@ -184,23 +179,14 @@ function init() {
                     }
 
                     await signUp(email, password, displayName, selectedRole);
-
-                    Swal.fire({
-                        title: 'Account Created!',
-                        text: 'Welcome to AllianzQuiz!',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
+                    await showSuccess('Account Created!', 'Welcome to AllianzQuiz!');
 
                     // Redirect based on role
-                    setTimeout(() => {
-                        if (selectedRole === 'admin' || selectedRole === 'teacher') {
-                            window.location.href = 'admin.html';
-                        } else {
-                            window.location.href = 'dashboard.html';
-                        }
-                    }, 1500);
+                    if (selectedRole === 'admin' || selectedRole === 'teacher') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
 
                 } else {
                     await signIn(email, password);
@@ -218,24 +204,7 @@ function init() {
 
             } catch (error) {
                 console.error('Auth error:', error);
-
-                let message = 'An error occurred. Please try again.';
-
-                if (error.code === 'auth/email-already-in-use') {
-                    message = 'This email is already registered. Try signing in instead.';
-                } else if (error.code === 'auth/invalid-email') {
-                    message = 'Please enter a valid email address.';
-                } else if (error.code === 'auth/weak-password') {
-                    message = 'Password should be at least 6 characters.';
-                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    message = 'Invalid email or password.';
-                } else if (error.code === 'auth/invalid-credential') {
-                    message = 'Invalid email or password.';
-                } else if (error.message) {
-                    message = error.message;
-                }
-
-                Swal.fire('Error', message, 'error');
+                showError(error, currentAuthMode === 'signup' ? 'Signup Failed' : 'Signin Failed');
 
                 submitBtn.disabled = false;
                 submitBtn.textContent = currentAuthMode === 'signup' ? 'Create Account' : 'Sign In';

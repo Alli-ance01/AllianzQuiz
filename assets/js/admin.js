@@ -9,10 +9,11 @@ import {
     updateQuiz,
     deleteQuizById,
     getSubmissionsByQuiz,
-    gradeQuestion
+    gradeQuestion,
+    getSubmissionsByQuizCreator,
+    clearCache
 } from './firebase-db.js';
-
-// ==================== GLOBAL STATE ====================
+import { showSuccess, showError, showToast, confirmAction, showLoadingToast } from './ui-helpers.js';
 
 let questions = [];
 let editingQuizId = null;
@@ -21,6 +22,7 @@ let currentAdminId = null;
 let myQuizzes = [];
 let currentSubmissions = [];
 let currentReviewTab = 'pending';
+let searchTimeout = null;
 
 // ==================== SKELETON LOADERS ====================
 
@@ -45,7 +47,14 @@ const initialReviewSkeleton = `
 `.repeat(4);
 
 // Make logout available globally
-window.logout = logout;
+window.logout = async function () {
+    const confirmed = await confirmAction('Logout?', 'Are you sure you want to log out?', 'Yes, logout');
+    if (confirmed) {
+        clearCache();
+        await (await import('./firebase-auth.js')).signOutUser();
+        window.location.href = 'index.html';
+    }
+};
 
 // ==================== THEME ====================
 
@@ -394,24 +403,18 @@ async function loadMyQuizzes() {
 }
 
 window.deleteQuiz = async function (id) {
-    const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: "This will delete the quiz and all its submissions!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: 'var(--error-color)',
-        confirmButtonText: 'Yes, delete it!'
-    });
+    const confirmed = await confirmAction('Are you sure?', 'This will delete the quiz and all its submissions!', 'Yes, delete it!');
 
-    if (result.isConfirmed) {
+    if (confirmed) {
         try {
             await deleteQuizById(id);
-            Swal.fire('Deleted!', 'The quiz has been deleted.', 'success');
+            showToast('Quiz deleted');
+            clearCache();
             await loadMyQuizzes();
-            await updateAnalytics(); // Refresh analytics after quiz deletion
+            await updateAnalytics();
         } catch (error) {
             console.error('Error deleting quiz:', error);
-            Swal.fire('Error', 'Failed to delete quiz.', 'error');
+            showError(error, 'Delete Failed');
         }
     }
 };
@@ -421,12 +424,9 @@ async function updateAnalytics() {
         const quizzes = myQuizzes;
         document.getElementById('statTotalQuizzes').textContent = quizzes.length;
 
-        // This is simplified - in production you'd use a server-side aggregation or a more complex query
-        // For now we'll fetch all submissions for all quizzes owned by this admin
         let totalAttempts = 0;
         let totalScorePercent = 0;
 
-        const { getSubmissionsByQuizCreator } = await import('./firebase-db.js');
         const allSubs = await getSubmissionsByQuizCreator(currentAdminId);
 
         totalAttempts = allSubs.length;
@@ -462,15 +462,7 @@ window.editQuiz = async function (id) {
 
 window.copyCode = function (code) {
     navigator.clipboard.writeText(code).then(() => {
-        Swal.fire({
-            title: 'Copied!',
-            text: 'Access code copied to clipboard',
-            icon: 'success',
-            timer: 1000,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end'
-        });
+        showToast('Access code copied to clipboard');
     });
 };
 
@@ -567,7 +559,10 @@ window.switchReviewTab = function (tab) {
 };
 
 window.filterSubmissions = function () {
-    renderSubmissions();
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        renderSubmissions();
+    }, 300);
 };
 
 function renderSubmissions() {

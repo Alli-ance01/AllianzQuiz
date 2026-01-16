@@ -14,6 +14,38 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ==================== CACHE SYSTEM ====================
+const CACHE = {
+    publicQuizzes: null,
+    adminQuizzes: {}, // userId -> quizArray
+    userSubmissions: {}, // userId -> subArray
+    quizSubmissions: {}, // quizId -> subArray
+    cacheTime: {}
+};
+
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+function isCacheValid(key) {
+    if (!CACHE.cacheTime[key]) return false;
+    return (Date.now() - CACHE.cacheTime[key]) < CACHE_DURATION;
+}
+
+function setCache(key, data) {
+    CACHE.cacheTime[key] = Date.now();
+    if (key === 'publicQuizzes') CACHE.publicQuizzes = data;
+    else if (key.startsWith('adminQuizzes_')) CACHE.adminQuizzes[key.split('_')[1]] = data;
+    else if (key.startsWith('userSubmissions_')) CACHE.userSubmissions[key.split('_')[1]] = data;
+    else if (key.startsWith('quizSubmissions_')) CACHE.quizSubmissions[key.split('_')[1]] = data;
+}
+
+export function clearCache() {
+    CACHE.publicQuizzes = null;
+    CACHE.adminQuizzes = {};
+    CACHE.userSubmissions = {};
+    CACHE.quizSubmissions = {};
+    CACHE.cacheTime = {};
+}
+
 // ==================== QUIZ FUNCTIONS ====================
 
 // Generate a unique 6-character access code for private quizzes
@@ -62,24 +94,33 @@ export async function createQuiz(quizData) {
 
 // Get all quizzes created by a specific admin
 export async function getQuizzesByCreator(userId) {
+    const cacheKey = `adminQuizzes_${userId}`;
+    if (isCacheValid(cacheKey)) return CACHE.adminQuizzes[userId];
+
     const q = query(
         collection(db, 'quizzes'),
         where('createdBy', '==', userId)
     );
     const snapshot = await getDocs(q);
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return sortByCreatedAtDesc(docs);
+    const sorted = sortByCreatedAtDesc(docs);
+    setCache(cacheKey, sorted);
+    return sorted;
 }
 
 // Get all public quizzes (for student dashboard)
 export async function getPublicQuizzes() {
+    if (isCacheValid('publicQuizzes')) return CACHE.publicQuizzes;
+
     const q = query(
         collection(db, 'quizzes'),
         where('visibility', '==', 'public')
     );
     const snapshot = await getDocs(q);
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return sortByCreatedAtDesc(docs);
+    const sorted = sortByCreatedAtDesc(docs);
+    setCache('publicQuizzes', sorted);
+    return sorted;
 }
 
 // Get a quiz by its access code (for private quiz access)
@@ -130,13 +171,18 @@ export async function saveSubmission(submissionData) {
 
 // Get all submissions for a specific quiz (for admin grading)
 export async function getSubmissionsByQuiz(quizId) {
+    const cacheKey = `quizSubmissions_${quizId}`;
+    if (isCacheValid(cacheKey)) return CACHE.quizSubmissions[quizId];
+
     const q = query(
         collection(db, 'attempts'),
         where('quizId', '==', quizId)
     );
     const snapshot = await getDocs(q);
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return sortByTimestampDesc(docs);
+    const sorted = sortByTimestampDesc(docs);
+    setCache(cacheKey, sorted);
+    return sorted;
 }
 
 // Get all submissions for quizzes created by a specific admin
@@ -152,13 +198,18 @@ export async function getSubmissionsByQuizCreator(creatorId) {
 
 // Get all submissions by a specific user (for student history)
 export async function getSubmissionsByUser(userId) {
+    const cacheKey = `userSubmissions_${userId}`;
+    if (isCacheValid(cacheKey)) return CACHE.userSubmissions[userId];
+
     const q = query(
         collection(db, 'attempts'),
         where('userId', '==', userId)
     );
     const snapshot = await getDocs(q);
     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return sortByTimestampDesc(docs);
+    const sorted = sortByTimestampDesc(docs);
+    setCache(cacheKey, sorted);
+    return sorted;
 }
 
 // Get a single submission by ID

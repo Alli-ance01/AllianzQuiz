@@ -1,8 +1,7 @@
-// Script.js - Student Dashboard functionality
-
 import { getUser, logout, checkAuth } from './logic.js';
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import { getPublicQuizzes, getQuizByAccessCode, getSubmissionsByUser } from './firebase-db.js';
+import { showError, showSuccess } from './ui-helpers.js';
 
 // ==================== GLOBAL STATE ====================
 
@@ -149,11 +148,11 @@ window.joinPrivateQuiz = async function () {
         if (quiz) {
             window.location.href = `quiz.html?id=${quiz.id}&source=firestore`;
         } else {
-            Swal.fire('Invalid Code', 'No quiz found with that code. Please check and try again.', 'error');
+            showError({ message: 'No quiz found with that code. Please check and try again.' }, 'Invalid Code');
         }
     } catch (error) {
         console.error('Error joining quiz:', error);
-        Swal.fire('Error', 'Failed to find quiz. Please try again.', 'error');
+        showError(error, 'Join Failed');
     }
 };
 
