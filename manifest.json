@@ -1,0 +1,23 @@
+{
+  "name": "AllianzQuiz",
+  "short_name": "AllianzQuiz",
+  "description": "Professional Online Quiz & CBT System",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/img/app_icon_512.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "assets/img/app_icon_512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
