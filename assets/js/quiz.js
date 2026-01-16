@@ -16,23 +16,6 @@ let startTime = 0;
 let currentUserId = null;
 let currentUserProfile = null;
 
-// ==================== THEME ====================
-
-function applyTheme() {
-    let saved = localStorage.getItem('cbt_theme') || 'light';
-    document.documentElement.setAttribute('data-theme', saved);
-    let btn = document.getElementById('themeToggleBtn');
-    if (btn) btn.innerHTML = saved === 'light' ? '🌙' : '☀️';
-}
-applyTheme();
-
-document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
-    let current = localStorage.getItem('cbt_theme') || 'light';
-    let next = current === 'light' ? 'dark' : 'light';
-    localStorage.setItem('cbt_theme', next);
-    applyTheme();
-});
-
 // ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
@@ -392,7 +375,7 @@ async function executeSubmit() {
     const submissionData = {
         quizId: myQuizData.id,
         quizTitle: myQuizData.title,
-        quizCreatorId: myQuizData.createdBy || null,
+        quizCreatorId: myQuizData.createdBy || 'system',
         userId: currentUserId || null,
         userName: currentUserProfile?.displayName || 'Anonymous',
         userEmail: currentUserProfile?.email || '',

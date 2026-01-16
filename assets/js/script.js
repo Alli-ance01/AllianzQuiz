@@ -36,8 +36,11 @@ onAuthChange(async (user) => {
     await loadHistory();
 });
 
+// Load logic to handle side-effects like theme and service worker
+import './logic.js';
+
 // Make logout available globally
-window.logout = logout;
+window.logout = (await import('./logic.js')).logout;
 
 // ==================== SKELETON LOADERS ====================
 

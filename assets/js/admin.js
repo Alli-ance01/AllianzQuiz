@@ -46,33 +46,6 @@ const initialReviewSkeleton = `
     </div>
 `.repeat(4);
 
-// Make logout available globally
-window.logout = async function () {
-    const confirmed = await confirmAction('Logout?', 'Are you sure you want to log out?', 'Yes, logout');
-    if (confirmed) {
-        clearCache();
-        await (await import('./firebase-auth.js')).signOutUser();
-        window.location.href = 'index.html';
-    }
-};
-
-// ==================== THEME ====================
-
-function applyTheme() {
-    let saved = localStorage.getItem('cbt_theme') || 'light';
-    document.documentElement.setAttribute('data-theme', saved);
-    let btn = document.getElementById('themeToggleBtn');
-    if (btn) btn.innerHTML = saved === 'light' ? '🌙' : '☀️';
-}
-applyTheme();
-
-document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
-    let current = localStorage.getItem('cbt_theme') || 'light';
-    let next = current === 'light' ? 'dark' : 'light';
-    localStorage.setItem('cbt_theme', next);
-    applyTheme();
-});
-
 // ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
