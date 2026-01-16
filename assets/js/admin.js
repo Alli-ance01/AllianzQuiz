@@ -67,6 +67,9 @@ onAuthChange(async (user) => {
     // Load admin's quizzes
     await loadMyQuizzes();
 
+    // Initial analytics
+    await updateAnalytics();
+
     // Add initial question
     if (questions.length === 0) {
         addQuestion();
@@ -276,21 +279,27 @@ document.getElementById('quizForm').addEventListener('submit', async function (e
     };
 
     try {
-        const savedQuiz = await createQuiz(quizData);
+        if (editingQuizId) {
+            await updateQuiz(editingQuizId, quizData);
+            Swal.fire('Success!', 'Quiz updated successfully!', 'success');
+        } else {
+            const savedQuiz = await createQuiz(quizData);
 
-        let message = 'Quiz saved successfully!';
-        if (savedQuiz.visibility === 'private' && savedQuiz.accessCode) {
-            message = `Quiz saved! Access Code: <strong style="font-size: 1.5rem; letter-spacing: 2px;">${savedQuiz.accessCode}</strong><br><br>Share this code with your students.`;
+            let message = 'Quiz saved successfully!';
+            if (savedQuiz.visibility === 'private' && savedQuiz.accessCode) {
+                message = `Quiz saved! Access Code: <strong style="font-size: 1.5rem; letter-spacing: 2px;">${savedQuiz.accessCode}</strong><br><br>Share this code with your students.`;
+            }
+
+            await Swal.fire({
+                title: 'Success!',
+                html: message,
+                icon: 'success'
+            });
         }
-
-        await Swal.fire({
-            title: 'Success!',
-            html: message,
-            icon: 'success'
-        });
 
         resetForm();
         await loadMyQuizzes();
+        await updateAnalytics(); // Refresh analytics after quiz creation/update
 
     } catch (error) {
         console.error('Error saving quiz:', error);
@@ -334,7 +343,7 @@ async function loadMyQuizzes() {
                 : `<span style="background: var(--success-bg); color: var(--success-text); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem;">🌐 Public</span>`;
 
             const codeDisplay = q.visibility === 'private' && q.accessCode
-                ? `<br><span style="font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">Code: ${q.accessCode}</span>`
+                ? `<br><span style="font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">Code: ${q.accessCode} <button onclick="copyCode('${q.accessCode}')" style="background: none; border: none; cursor: pointer; padding: 0.1rem 0.3rem;">📋</button></span>`
                 : '';
 
             return `
@@ -346,6 +355,8 @@ async function loadMyQuizzes() {
                     </div>
                     <div style="display: flex; gap: 0.75rem; align-items: center;">
                         ${visibilityBadge}
+                        <button onclick="editQuiz('${q.id}')" style="color: var(--primary-color); background: none; border: none; cursor: pointer; font-weight: 600;">Edit</button>
+                        <button onclick="duplicateQuiz('${q.id}')" style="color: #6366f1; background: none; border: none; cursor: pointer; font-weight: 600;">Duplicate</button>
                         <button onclick="deleteQuiz('${q.id}')" style="color: var(--error-color); background: none; border: none; cursor: pointer; font-weight: 600;">Delete</button>
                     </div>
                 </div>
@@ -373,10 +384,92 @@ window.deleteQuiz = async function (id) {
             await deleteQuizById(id);
             Swal.fire('Deleted!', 'The quiz has been deleted.', 'success');
             await loadMyQuizzes();
+            await updateAnalytics(); // Refresh analytics after quiz deletion
         } catch (error) {
             console.error('Error deleting quiz:', error);
             Swal.fire('Error', 'Failed to delete quiz.', 'error');
         }
+    }
+};
+
+async function updateAnalytics() {
+    try {
+        const quizzes = myQuizzes;
+        document.getElementById('statTotalQuizzes').textContent = quizzes.length;
+
+        // This is simplified - in production you'd use a server-side aggregation or a more complex query
+        // For now we'll fetch all submissions for all quizzes owned by this admin
+        let totalAttempts = 0;
+        let totalScorePercent = 0;
+
+        const { getSubmissionsByQuizCreator } = await import('./firebase-db.js');
+        const allSubs = await getSubmissionsByQuizCreator(currentAdminId);
+
+        totalAttempts = allSubs.length;
+        allSubs.forEach(s => totalScorePercent += s.percentage);
+
+        document.getElementById('statTotalAttempts').textContent = totalAttempts;
+        const avg = totalAttempts > 0 ? Math.round(totalScorePercent / totalAttempts) : 0;
+        document.getElementById('statAvgScore').textContent = avg + "%";
+
+    } catch (error) {
+        console.error('Error updating analytics:', error);
+    }
+}
+
+window.editQuiz = async function (id) {
+    const quiz = myQuizzes.find(q => q.id === id);
+    if (!quiz) return;
+
+    editingQuizId = id;
+    document.getElementById('quizTitle').value = quiz.title;
+    document.getElementById('quizDesc').value = quiz.description;
+    document.getElementById('quizInstructions').value = quiz.instructions || "";
+    document.getElementById('quizDuration').value = quiz.duration;
+
+    selectedVisibility = quiz.visibility || 'public';
+    selectVisibility(selectedVisibility);
+
+    questions = JSON.parse(JSON.stringify(quiz.questions));
+    renderQuestions();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.copyCode = function (code) {
+    navigator.clipboard.writeText(code).then(() => {
+        Swal.fire({
+            title: 'Copied!',
+            text: 'Access code copied to clipboard',
+            icon: 'success',
+            timer: 1000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+    });
+};
+
+window.duplicateQuiz = async function (id) {
+    const quiz = myQuizzes.find(q => q.id === id);
+    if (!quiz) return;
+
+    try {
+        const newQuizData = {
+            ...quiz,
+            title: quiz.title + ' (Copy)',
+            createdAt: new Date(),
+            // Remove ID and access code to let Firebase generate new ones
+        };
+        delete newQuizData.id;
+        delete newQuizData.accessCode;
+
+        await createQuiz(newQuizData);
+        Swal.fire('Duplicated!', 'Quiz duplicated successfully.', 'success');
+        await loadMyQuizzes();
+    } catch (error) {
+        console.error('Error duplicating quiz:', error);
+        Swal.fire('Error', 'Failed to duplicate quiz.', 'error');
     }
 };
 
@@ -395,10 +488,47 @@ window.loadSubmissionsForSelectedQuiz = async function () {
     try {
         currentSubmissions = await getSubmissionsByQuiz(quizId);
         renderSubmissions();
+        await updateAnalytics(); // Update stats since we have new data
     } catch (error) {
         console.error('Error loading submissions:', error);
         list.innerHTML = '<p style="color: var(--text-muted);">Error loading submissions.</p>';
     }
+};
+
+window.exportSubmissionsCSV = function () {
+    if (currentSubmissions.length === 0) {
+        Swal.fire('No Data', 'No submissions found to export.', 'info');
+        return;
+    }
+
+    const quizId = document.getElementById('quizSelector').value;
+    const quiz = myQuizzes.find(q => q.id === quizId);
+    const fileName = `Submissions_${quiz ? quiz.title : 'Quiz'}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Student Name,Email,Date,Score,Total,Percentage,Time Taken\n";
+
+    currentSubmissions.forEach(s => {
+        const date = s.timestamp?.toDate ? s.timestamp.toDate() : new Date(s.timestamp);
+        const row = [
+            `"${s.userName || 'Anonymous'}"`,
+            `"${s.userEmail || ''}"`,
+            `"${date.toLocaleString()}"`,
+            s.score,
+            s.total,
+            `"${s.percentage}%"`,
+            `"${s.timeTaken || 'N/A'}"`
+        ].join(",");
+        csvContent += row + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 window.switchReviewTab = function (tab) {

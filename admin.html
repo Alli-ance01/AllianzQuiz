@@ -31,6 +31,25 @@
             </div>
         </div>
 
+        <section class="admin-section" id="analyticsSection"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div class="card" style="padding: 1.5rem; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+                <div style="font-size: 1.5rem; font-weight: 700;" id="statTotalQuizzes">0</div>
+                <div style="color: var(--text-muted); font-size: 0.9rem;">Total Quizzes</div>
+            </div>
+            <div class="card" style="padding: 1.5rem; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">👥</div>
+                <div style="font-size: 1.5rem; font-weight: 700;" id="statTotalAttempts">0</div>
+                <div style="color: var(--text-muted); font-size: 0.9rem;">Total Attempts</div>
+            </div>
+            <div class="card" style="padding: 1.5rem; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📈</div>
+                <div style="font-size: 1.5rem; font-weight: 700;" id="statAvgScore">0%</div>
+                <div style="color: var(--text-muted); font-size: 0.9rem;">Average Score</div>
+            </div>
+        </section>
+
         <section class="admin-section">
             <h2 style="margin-bottom: 1.5rem;">Create New Quiz</h2>
             <form id="quizForm">
@@ -122,6 +141,9 @@
                 <input type="text" id="submissionSearch" placeholder="Search by name..."
                     style="flex-grow: 1; padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);"
                     oninput="filterSubmissions()">
+                <button onclick="exportSubmissionsCSV()" class="btn btn-secondary" style="padding: 0.6rem 1.25rem;">
+                    📥 Export CSV
+                </button>
             </div>
 
             <div id="submissionsReviewList" style="display: grid; gap: 1rem;">
