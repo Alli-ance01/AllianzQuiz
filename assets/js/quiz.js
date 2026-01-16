@@ -1,3 +1,10 @@
+// Quiz.js - Quiz taking functionality
+
+import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
+import { getQuizById, saveSubmission } from './firebase-db.js';
+
+// ==================== GLOBAL STATE ====================
+
 let myQuizData = null;
 let currentQIdx = 0;
 let myAnswers = {};
@@ -5,12 +12,47 @@ let myFlags = {};
 let timerInt = null;
 let timeLft = 0;
 let startTime = 0;
+let currentUserId = null;
+let currentUserProfile = null;
 
-function quizInit() {
-    checkAuth();
+// ==================== THEME ====================
 
-    let params = new URLSearchParams(window.location.search);
-    let quizId = params.get('id');
+function applyTheme() {
+    let saved = localStorage.getItem('cbt_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    let btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.innerHTML = saved === 'light' ? '🌙' : '☀️';
+}
+applyTheme();
+
+document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
+    let current = localStorage.getItem('cbt_theme') || 'light';
+    let next = current === 'light' ? 'dark' : 'light';
+    localStorage.setItem('cbt_theme', next);
+    applyTheme();
+});
+
+// ==================== AUTH CHECK ====================
+
+onAuthChange(async (user) => {
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    currentUserId = user.uid;
+    currentUserProfile = await getUserProfile(user.uid);
+
+    // Initialize quiz
+    await quizInit();
+});
+
+// ==================== QUIZ INITIALIZATION ====================
+
+async function quizInit() {
+    const params = new URLSearchParams(window.location.search);
+    const quizId = params.get('id');
+    const source = params.get('source');
 
     if (!quizId) {
         Swal.fire({
@@ -24,41 +66,60 @@ function quizInit() {
         return;
     }
 
-    let customQuizzes = JSON.parse(localStorage.getItem('cbt_custom_quizzes') || '[]');
-    let allQuizzes = [...myData, ...customQuizzes];
-
-    for (let i = 0; i < allQuizzes.length; i++) {
-        if (allQuizzes[i].id === quizId) {
-            myQuizData = JSON.parse(JSON.stringify(allQuizzes[i]));
-            break;
+    try {
+        // Try to get from Firestore first if source is firestore
+        if (source === 'firestore') {
+            myQuizData = await getQuizById(quizId);
         }
-    }
 
-    if (!myQuizData) {
+        // Fallback to local data.js
+        if (!myQuizData && typeof myData !== 'undefined') {
+            for (let i = 0; i < myData.length; i++) {
+                if (myData[i].id === quizId) {
+                    myQuizData = JSON.parse(JSON.stringify(myData[i]));
+                    break;
+                }
+            }
+        }
+
+        if (!myQuizData) {
+            Swal.fire({
+                title: 'Quiz Not Found',
+                text: 'The requested quiz does not exist.',
+                icon: 'warning',
+                confirmButtonText: 'Back to Dashboard'
+            }).then(() => {
+                window.location.href = 'dashboard.html';
+            });
+            return;
+        }
+
+        // Shuffle questions
+        for (let i = myQuizData.questions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = myQuizData.questions[i];
+            myQuizData.questions[i] = myQuizData.questions[j];
+            myQuizData.questions[j] = temp;
+        }
+
+        document.getElementById('quizTitle').textContent = myQuizData.title;
+        document.getElementById('totalQNum').textContent = myQuizData.questions.length;
+        timeLft = myQuizData.duration * 60;
+
+        renderPal();
+        showStartModal();
+
+    } catch (error) {
+        console.error('Error loading quiz:', error);
         Swal.fire({
-            title: 'Quiz Not Found',
-            text: 'The requested quiz does not exist.',
-            icon: 'warning',
-            confirmButtonText: 'Back to Dashboard'
+            title: 'Error',
+            text: 'Failed to load quiz. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'Back'
         }).then(() => {
             window.location.href = 'dashboard.html';
         });
-        return;
     }
-
-    for (let i = myQuizData.questions.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let temp = myQuizData.questions[i];
-        myQuizData.questions[i] = myQuizData.questions[j];
-        myQuizData.questions[j] = temp;
-    }
-
-    document.getElementById('quizTitle').textContent = myQuizData.title;
-    document.getElementById('totalQNum').textContent = myQuizData.questions.length;
-    timeLft = myQuizData.duration * 60;
-
-    renderPal();
-    showStartModal();
 }
 
 function showStartModal() {
@@ -71,6 +132,7 @@ function showStartModal() {
                 <ul style="padding-left: 1.5rem; line-height: 1.6;">
                     <li>You have <strong>${myQuizData.duration} minutes</strong> to complete the quiz.</li>
                     <li>There are <strong>${myQuizData.questions.length} questions</strong> in total.</li>
+                </ul>
             <div class="quiz-instructions">
                 <strong>Instructions:</strong><br>
                 ${(myQuizData.instructions || "No specific instructions provided. Good luck!").replace(/\n/g, '<br>')}
@@ -107,7 +169,7 @@ function shuffle(array) {
 }
 
 function startT() {
-    let display = document.getElementById('timerDisplay');
+    const display = document.getElementById('timerDisplay');
     document.getElementById('quizMainContent').style.display = 'grid';
 
     timerInt = setInterval(function () {
@@ -118,8 +180,8 @@ function startT() {
 
         timeLft--;
 
-        let mins = Math.floor(timeLft / 60);
-        let secs = timeLft % 60;
+        const mins = Math.floor(timeLft / 60);
+        const secs = timeLft % 60;
         display.textContent = `${mins}:${secs < 10 ? '0' + secs : secs}`;
 
         if (timeLft < 60) {
@@ -130,28 +192,29 @@ function startT() {
     }, 1000);
 }
 
+// ==================== QUESTION NAVIGATION ====================
+
 function loadQ(index) {
     if (index < 0 || index >= myQuizData.questions.length) return;
 
     currentQIdx = index;
     document.getElementById('currentQNum').textContent = index + 1;
 
-    let question = myQuizData.questions[index];
+    const question = myQuizData.questions[index];
     document.getElementById('questionText').textContent = question.text;
 
-    let bar = document.getElementById('progressBar');
-    let percent = ((index + 1) / myQuizData.questions.length) * 100;
+    const bar = document.getElementById('progressBar');
+    const percent = ((index + 1) / myQuizData.questions.length) * 100;
     bar.style.width = percent + "%";
 
-    let flagBtn = document.getElementById('flagBtn');
-
+    const flagBtn = document.getElementById('flagBtn');
     flagBtn.textContent = myFlags[question.id] ? 'Unflag' : 'Flag';
 
-    let container = document.getElementById('optionsContainer');
+    const container = document.getElementById('optionsContainer');
     let html = "";
 
     if (question.type === 'sa') {
-        let currentAns = myAnswers[question.id] || '';
+        const currentAns = myAnswers[question.id] || '';
         html = `
             <div class="input-group">
                 <label>Type your answer below:</label>
@@ -159,14 +222,14 @@ function loadQ(index) {
             </div>
         `;
     } else {
-        // Randomize options if not already done for this question session
+        // Randomize options if not already done
         if (!question._shuffledOptions) {
-            let optsWithIdx = question.options.map((text, idx) => ({ text, idx }));
+            const optsWithIdx = question.options.map((text, idx) => ({ text, idx }));
             question._shuffledOptions = shuffle(optsWithIdx);
         }
 
         question._shuffledOptions.forEach(opt => {
-            let isSelected = myAnswers[question.id] === opt.idx;
+            const isSelected = myAnswers[question.id] === opt.idx;
             html += `
                 <div class="option-card ${isSelected ? 'selected' : ''}" onclick="selAns(${question.id}, ${opt.idx})">
                     <div class="option-circle"></div>
@@ -180,7 +243,7 @@ function loadQ(index) {
     document.getElementById('prevBtn').disabled = index === 0;
     document.getElementById('prevBtn').style.opacity = index === 0 ? '0.5' : '1';
 
-    let nextBtn = document.getElementById('nextBtn');
+    const nextBtn = document.getElementById('nextBtn');
     if (index === myQuizData.questions.length - 1) {
         nextBtn.textContent = 'Finish';
         nextBtn.onclick = function () { submitQ(); };
@@ -192,13 +255,12 @@ function loadQ(index) {
     renderPal();
 }
 
-function toggleFlag() {
-    let question = myQuizData.questions[currentQIdx];
+window.toggleFlag = function () {
+    const question = myQuizData.questions[currentQIdx];
     myFlags[question.id] = !myFlags[question.id];
     loadQ(currentQIdx);
-}
+};
 
-// Ensure this is global
 window.handleTextAns = function (qId, val) {
     if (val.trim() === "") {
         delete myAnswers[qId];
@@ -208,39 +270,39 @@ window.handleTextAns = function (qId, val) {
     renderPal();
 };
 
-function selAns(qId, optionIndex) {
+window.selAns = function (qId, optionIndex) {
     if (myAnswers[qId] === optionIndex) {
         delete myAnswers[qId];
     } else {
         myAnswers[qId] = optionIndex;
     }
     loadQ(currentQIdx);
-}
+};
 
-function nextQ() {
+window.nextQ = function () {
     if (currentQIdx < myQuizData.questions.length - 1) {
         loadQ(currentQIdx + 1);
     }
-}
+};
 
-function prevQ() {
+window.prevQ = function () {
     if (currentQIdx > 0) {
         loadQ(currentQIdx - 1);
     }
-}
+};
 
-function jumpTo(index) {
+window.jumpTo = function (index) {
     loadQ(index);
-}
+};
 
 function renderPal() {
-    let grid = document.getElementById('paletteGrid');
+    const grid = document.getElementById('paletteGrid');
     let html = "";
     for (let i = 0; i < myQuizData.questions.length; i++) {
-        let q = myQuizData.questions[i];
-        let isAnswered = myAnswers[q.id] !== undefined;
-        let isCurrent = i === currentQIdx;
-        let isFlagged = myFlags[q.id];
+        const q = myQuizData.questions[i];
+        const isAnswered = myAnswers[q.id] !== undefined;
+        const isCurrent = i === currentQIdx;
+        const isFlagged = myFlags[q.id];
 
         let cls = 'palette-btn';
         if (isCurrent) {
@@ -256,7 +318,9 @@ function renderPal() {
     grid.innerHTML = html;
 }
 
-function submitQ(auto) {
+// ==================== SUBMISSION ====================
+
+window.submitQ = function (auto) {
     if (auto) {
         executeSubmit();
     } else {
@@ -274,27 +338,26 @@ function submitQ(auto) {
             }
         });
     }
-}
+};
 
-function executeSubmit() {
+async function executeSubmit() {
     clearInterval(timerInt);
 
     let counts = 0;
     let pending = 0;
-    let report = [];
+    const report = [];
 
     for (let i = 0; i < myQuizData.questions.length; i++) {
-        let q = myQuizData.questions[i];
-        let selected = myAnswers[q.id];
+        const q = myQuizData.questions[i];
+        const selected = myAnswers[q.id];
         let isCorrect = false;
-        let status = 'wrong'; // correct, wrong, pending
+        let status = 'wrong';
 
         if (q.type === 'sa') {
             if (q.scoring === 'manual') {
                 status = 'pending';
                 pending++;
             } else {
-                // Exact match (case insensitive)
                 isCorrect = (selected || "").toString().toLowerCase().trim() === (q.correctText || "").toLowerCase().trim();
                 if (isCorrect) {
                     counts++;
@@ -302,7 +365,6 @@ function executeSubmit() {
                 }
             }
         } else {
-            // MCQ or TF
             isCorrect = (selected === q.correct);
             if (isCorrect) {
                 counts++;
@@ -310,7 +372,7 @@ function executeSubmit() {
             }
         }
 
-        let item = {
+        const item = {
             questionId: q.id,
             text: q.text,
             type: q.type,
@@ -323,8 +385,7 @@ function executeSubmit() {
         report.push(item);
     }
 
-    let now = new Date().toISOString();
-    let timeSpentSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const timeSpentSeconds = Math.floor((Date.now() - startTime) / 1000);
     let timeTakenFormatted = "";
     if (timeSpentSeconds < 60) {
         timeTakenFormatted = timeSpentSeconds + "s";
@@ -332,10 +393,13 @@ function executeSubmit() {
         timeTakenFormatted = Math.floor(timeSpentSeconds / 60) + "m " + (timeSpentSeconds % 60) + "s";
     }
 
-    let res = {
+    const submissionData = {
         quizId: myQuizData.id,
         quizTitle: myQuizData.title,
-        timestamp: now,
+        quizCreatorId: myQuizData.createdBy || null,
+        userId: currentUserId,
+        userName: currentUserProfile?.displayName || 'Anonymous',
+        userEmail: currentUserProfile?.email || '',
         timeTaken: timeTakenFormatted,
         score: counts,
         pending: pending,
@@ -344,30 +408,30 @@ function executeSubmit() {
         details: report
     };
 
-    localStorage.setItem('cbt_last_result', JSON.stringify(res));
+    try {
+        // Save to Firestore
+        const savedSubmission = await saveSubmission(submissionData);
 
-    let history = JSON.parse(localStorage.getItem('cbt_score_history') || '[]');
-    history.push({
-        quizId: myQuizData.id,
-        quizTitle: myQuizData.title,
-        score: counts,
-        pending: pending,
-        total: myQuizData.questions.length,
-        percentage: Math.round((counts / myQuizData.questions.length) * 100),
-        timestamp: now,
-        timeTaken: timeTakenFormatted
-    });
-    localStorage.setItem('cbt_score_history', JSON.stringify(history));
+        // Also save to localStorage for immediate result display
+        localStorage.setItem('cbt_last_result', JSON.stringify({
+            ...submissionData,
+            id: savedSubmission.id
+        }));
 
-    // Store for admin review
-    let allSubmissions = JSON.parse(localStorage.getItem('cbt_all_submissions') || '[]');
-    let user = getUser();
-    res.userName = user ? user.name : 'Anonymous';
-    res.userEmail = user ? user.email : '';
-    allSubmissions.push(res);
-    localStorage.setItem('cbt_all_submissions', JSON.stringify(allSubmissions));
+        window.location.href = 'result.html';
 
-    window.location.href = 'result.html';
+    } catch (error) {
+        console.error('Error saving submission:', error);
+
+        // Fallback: still show result even if save failed
+        localStorage.setItem('cbt_last_result', JSON.stringify(submissionData));
+
+        Swal.fire({
+            title: 'Warning',
+            text: 'Quiz completed but there was an issue saving to the server. Your result is saved locally.',
+            icon: 'warning'
+        }).then(() => {
+            window.location.href = 'result.html';
+        });
+    }
 }
-
-document.addEventListener('DOMContentLoaded', quizInit);

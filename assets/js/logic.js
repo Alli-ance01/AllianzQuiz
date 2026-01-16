@@ -1,3 +1,9 @@
+// Logic.js - Theme management and Firebase Authentication
+
+import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin } from './firebase-auth.js';
+
+// ==================== THEME MANAGEMENT ====================
+
 function applyTheme() {
     let saved = localStorage.getItem('cbt_theme') || 'light';
     document.documentElement.setAttribute('data-theme', saved);
@@ -19,28 +25,80 @@ function updateThemeIcon() {
     btn.innerHTML = current === 'light' ? '🌙' : '☀️';
 }
 
+// Apply theme immediately
 applyTheme();
 
-function login(name, email) {
-    let user = {
-        name: name,
-        email: email,
-        loginTime: new Date().toISOString()
-    };
-    localStorage.setItem('cbt_user', JSON.stringify(user));
-    return user;
-}
+// ==================== AUTH STATE ====================
 
-function getUser() {
-    let userStr = localStorage.getItem('cbt_user');
-    if (userStr) {
-        return JSON.parse(userStr);
+let currentAuthMode = 'signin';
+let selectedRole = 'student';
+
+// Switch between Sign In and Sign Up modes
+window.switchAuthMode = function (mode) {
+    currentAuthMode = mode;
+
+    const signInTab = document.getElementById('signInTab');
+    const signUpTab = document.getElementById('signUpTab');
+    const nameGroup = document.getElementById('nameGroup');
+    const roleGroup = document.getElementById('roleGroup');
+    const submitBtn = document.getElementById('submitBtn');
+    const formTitle = document.getElementById('formTitle');
+    const formSubtitle = document.getElementById('formSubtitle');
+    const usernameInput = document.getElementById('username');
+
+    if (mode === 'signup') {
+        signInTab.classList.remove('active');
+        signUpTab.classList.add('active');
+        nameGroup.style.display = 'block';
+        roleGroup.style.display = 'block';
+        submitBtn.textContent = 'Create Account';
+        formTitle.textContent = 'Create Account';
+        formSubtitle.textContent = 'Join AllianzQuiz today';
+        usernameInput.required = true;
     } else {
-        return null;
+        signInTab.classList.add('active');
+        signUpTab.classList.remove('active');
+        nameGroup.style.display = 'none';
+        roleGroup.style.display = 'none';
+        submitBtn.textContent = 'Sign In';
+        formTitle.textContent = 'Welcome Back';
+        formSubtitle.textContent = 'Sign in to continue';
+        usernameInput.required = false;
     }
+};
+
+// Select role (student/admin)
+window.selectRole = function (role) {
+    selectedRole = role;
+    document.querySelectorAll('.role-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.role === role) {
+            btn.classList.add('selected');
+        }
+    });
+};
+
+// ==================== AUTHENTICATION ====================
+
+// Get user from Firestore (replaces localStorage getUser)
+export async function getUser() {
+    const user = getCurrentUser();
+    if (!user) return null;
+
+    const profile = await getUserProfile(user.uid);
+    if (profile) {
+        return {
+            uid: user.uid,
+            name: profile.displayName,
+            email: profile.email,
+            role: profile.role
+        };
+    }
+    return null;
 }
 
-async function logout() {
+// Logout function
+export async function logout() {
     const result = await Swal.fire({
         title: 'Logout?',
         text: 'Are you sure you want to log out?',
@@ -52,37 +110,148 @@ async function logout() {
     });
 
     if (result.isConfirmed) {
-        localStorage.removeItem('cbt_user');
+        await signOutUser();
         window.location.href = 'index.html';
     }
 }
 
-function checkAuth() {
-    if (!getUser() && !window.location.pathname.includes('index.html')) {
-        window.location.href = 'index.html';
-    }
+// Make logout available globally
+window.logout = logout;
+
+// Check if user is authenticated (for protected pages)
+export function checkAuth() {
+    onAuthChange(async (user) => {
+        const currentPage = window.location.pathname;
+        const isLoginPage = currentPage.includes('index.html') || currentPage.endsWith('/');
+
+        if (!user && !isLoginPage) {
+            // Not logged in and not on login page - redirect to login
+            window.location.href = 'index.html';
+        } else if (user && isLoginPage) {
+            // Logged in but on login page - redirect to appropriate dashboard
+            const profile = await getUserProfile(user.uid);
+            if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        }
+    });
 }
+
+// ==================== INITIALIZATION ====================
 
 function init() {
     applyTheme();
-    let loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            let name = document.getElementById('username').value;
-            let email = document.getElementById('email').value;
 
-            if (name && email) {
-                login(name, email);
-                window.location.href = 'dashboard.html';
-            }
-        });
-    }
-
+    // Theme toggle button
     let toggleBtn = document.getElementById('themeToggleBtn');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', toggleTheme);
     }
+
+    // Login form handler
+    let loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = currentAuthMode === 'signup' ? 'Creating Account...' : 'Signing In...';
+
+            try {
+                if (currentAuthMode === 'signup') {
+                    const displayName = document.getElementById('username').value;
+
+                    if (!displayName) {
+                        throw new Error('Please enter your full name');
+                    }
+
+                    await signUp(email, password, displayName, selectedRole);
+
+                    Swal.fire({
+                        title: 'Account Created!',
+                        text: 'Welcome to AllianzQuiz!',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    // Redirect based on role
+                    setTimeout(() => {
+                        if (selectedRole === 'admin' || selectedRole === 'teacher') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'dashboard.html';
+                        }
+                    }, 1500);
+
+                } else {
+                    await signIn(email, password);
+
+                    // Get user profile to determine redirect
+                    const user = getCurrentUser();
+                    const profile = await getUserProfile(user.uid);
+
+                    if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Auth error:', error);
+
+                let message = 'An error occurred. Please try again.';
+
+                if (error.code === 'auth/email-already-in-use') {
+                    message = 'This email is already registered. Try signing in instead.';
+                } else if (error.code === 'auth/invalid-email') {
+                    message = 'Please enter a valid email address.';
+                } else if (error.code === 'auth/weak-password') {
+                    message = 'Password should be at least 6 characters.';
+                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    message = 'Invalid email or password.';
+                } else if (error.code === 'auth/invalid-credential') {
+                    message = 'Invalid email or password.';
+                } else if (error.message) {
+                    message = error.message;
+                }
+
+                Swal.fire('Error', message, 'error');
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = currentAuthMode === 'signup' ? 'Create Account' : 'Sign In';
+            }
+        });
+    }
+
+    // Check auth state for login page redirect
+    const currentPage = window.location.pathname;
+    const isLoginPage = currentPage.includes('index.html') || currentPage.endsWith('/');
+
+    if (isLoginPage) {
+        // On login page, check if already logged in
+        onAuthChange(async (user) => {
+            if (user) {
+                const profile = await getUserProfile(user.uid);
+                if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Export for other modules
+export { applyTheme, toggleTheme };

@@ -1,43 +1,136 @@
+// Admin.js - Admin Dashboard functionality
+
+import { logout } from './logic.js';
+import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
+import {
+    createQuiz,
+    getQuizzesByCreator,
+    getQuizById,
+    updateQuiz,
+    deleteQuizById,
+    getSubmissionsByQuiz,
+    gradeQuestion
+} from './firebase-db.js';
+
+// ==================== GLOBAL STATE ====================
+
 let questions = [];
 let editingQuizId = null;
+let selectedVisibility = 'public';
+let currentAdminId = null;
+let myQuizzes = [];
+let currentSubmissions = [];
+let currentReviewTab = 'pending';
 
-function addQuestion(data = null) {
+// Make logout available globally
+window.logout = logout;
+
+// ==================== THEME ====================
+
+function applyTheme() {
+    let saved = localStorage.getItem('cbt_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    let btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.innerHTML = saved === 'light' ? '🌙' : '☀️';
+}
+applyTheme();
+
+document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
+    let current = localStorage.getItem('cbt_theme') || 'light';
+    let next = current === 'light' ? 'dark' : 'light';
+    localStorage.setItem('cbt_theme', next);
+    applyTheme();
+});
+
+// ==================== AUTH CHECK ====================
+
+onAuthChange(async (user) => {
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Verify this is an admin
+    const profile = await getUserProfile(user.uid);
+    if (!profile || (profile.role !== 'admin' && profile.role !== 'teacher')) {
+        // Not an admin, redirect to student dashboard
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    currentAdminId = user.uid;
+
+    // Update header
+    document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.displayName || 'Admin'}!`;
+    document.getElementById('adminEmail').textContent = profile.email;
+
+    // Load admin's quizzes
+    await loadMyQuizzes();
+
+    // Add initial question
+    if (questions.length === 0) {
+        addQuestion();
+    }
+});
+
+// ==================== VISIBILITY SELECTOR ====================
+
+window.selectVisibility = function (visibility) {
+    selectedVisibility = visibility;
+    document.querySelectorAll('.role-btn[data-visibility]').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.visibility === visibility) {
+            btn.classList.add('selected');
+        }
+    });
+
+    const codeInfo = document.getElementById('accessCodeInfo');
+    if (visibility === 'private') {
+        codeInfo.style.display = 'block';
+    } else {
+        codeInfo.style.display = 'none';
+    }
+};
+
+// ==================== QUESTION MANAGEMENT ====================
+
+window.addQuestion = function (data = null) {
     const q = data || {
         id: Date.now() + Math.random(),
-        type: 'mcq', // mcq, tf, sa
-        scoring: 'exact', // exact, manual (only for sa)
+        type: 'mcq',
+        scoring: 'exact',
         text: '',
         options: ['', '', '', ''],
         correct: 0,
-        correctText: '' // for short answer
+        correctText: ''
     };
     questions.push(q);
     renderQuestions();
-}
+};
 
-function removeQuestion(index) {
+window.removeQuestion = function (index) {
     questions.splice(index, 1);
     renderQuestions();
-}
+};
 
-function updateQuestionText(index, text) {
+window.updateQuestionText = function (index, text) {
     questions[index].text = text;
-}
+};
 
-function updateOption(qIndex, oIndex, text) {
+window.updateOption = function (qIndex, oIndex, text) {
     questions[qIndex].options[oIndex] = text;
-}
+};
 
-function setCorrect(qIndex, oIndex) {
+window.setCorrect = function (qIndex, oIndex) {
     questions[qIndex].correct = oIndex;
     renderQuestions();
-}
+};
 
-function updateCorrectText(index, text) {
+window.updateCorrectText = function (index, text) {
     questions[index].correctText = text;
-}
+};
 
-function setType(index, type) {
+window.setType = function (index, type) {
     questions[index].type = type;
     if (type === 'tf') {
         questions[index].options = ['True', 'False'];
@@ -48,12 +141,12 @@ function setType(index, type) {
         questions[index].options = ['', '', '', ''];
     }
     renderQuestions();
-}
+};
 
-function setScoring(index, mode) {
+window.setScoring = function (index, mode) {
     questions[index].scoring = mode;
     renderQuestions();
-}
+};
 
 function renderQuestions() {
     const container = document.getElementById('questionsList');
@@ -78,7 +171,7 @@ function renderQuestions() {
                     ${[0, 1, 2, 3].map(oIdx => `
                         <div class="option-input-wrapper">
                             <span class="option-prefix">${String.fromCharCode(65 + oIdx)}</span>
-                            <input type="text" class="q-opt" placeholder="Option ${String.fromCharCode(65 + oIdx)}" value="${q.options[oIdx]}" oninput="updateOption(${qIdx}, ${oIdx}, this.value)" required>
+                            <input type="text" class="q-opt" placeholder="Option ${String.fromCharCode(65 + oIdx)}" value="${q.options[oIdx] || ''}" oninput="updateOption(${qIdx}, ${oIdx}, this.value)" required>
                         </div>
                     `).join('')}
                 </div>
@@ -137,6 +230,8 @@ function renderQuestions() {
     });
 }
 
+// ==================== QUIZ FORM SUBMISSION ====================
+
 document.getElementById('quizForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
@@ -144,51 +239,63 @@ document.getElementById('quizForm').addEventListener('submit', async function (e
     const desc = document.getElementById('quizDesc').value;
     const instructions = document.getElementById('quizInstructions').value;
     const duration = parseInt(document.getElementById('quizDuration').value);
-    const id = document.getElementById('quizId').value;
 
     if (questions.length === 0) {
         Swal.fire('Error', 'Please add at least one question!', 'error');
         return;
     }
 
-    const newQuiz = {
-        id: id,
+    // Validate questions
+    for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        if (!q.text.trim()) {
+            Swal.fire('Error', `Question ${i + 1} is empty!`, 'error');
+            return;
+        }
+        if (q.type === 'mcq') {
+            const filledOptions = q.options.filter(o => o.trim()).length;
+            if (filledOptions < 2) {
+                Swal.fire('Error', `Question ${i + 1} needs at least 2 options!`, 'error');
+                return;
+            }
+        }
+        if (q.type === 'sa' && q.scoring === 'exact' && !q.correctText.trim()) {
+            Swal.fire('Error', `Question ${i + 1} needs a correct answer!`, 'error');
+            return;
+        }
+    }
+
+    const quizData = {
         title: title,
         description: desc,
         instructions: instructions,
         duration: duration,
+        visibility: selectedVisibility,
+        createdBy: currentAdminId,
         questions: questions
     };
 
-    let customQuizzes = JSON.parse(localStorage.getItem('cbt_custom_quizzes') || '[]');
+    try {
+        const savedQuiz = await createQuiz(quizData);
 
-    if (editingQuizId && editingQuizId !== id) {
-        // ID changed while editing, delete old one
-        customQuizzes = customQuizzes.filter(q => q.id !== editingQuizId);
-    }
+        let message = 'Quiz saved successfully!';
+        if (savedQuiz.visibility === 'private' && savedQuiz.accessCode) {
+            message = `Quiz saved! Access Code: <strong style="font-size: 1.5rem; letter-spacing: 2px;">${savedQuiz.accessCode}</strong><br><br>Share this code with your students.`;
+        }
 
-    const existingIdx = customQuizzes.findIndex(q => q.id === id);
-    if (existingIdx > -1 && !editingQuizId) {
-        const result = await Swal.fire({
-            title: 'Overwrite Quiz?',
-            text: 'A quiz with this ID already exists. Overwrite it?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, overwrite'
+        await Swal.fire({
+            title: 'Success!',
+            html: message,
+            icon: 'success'
         });
-        if (!result.isConfirmed) return;
-        customQuizzes[existingIdx] = newQuiz;
-    } else if (existingIdx > -1) {
-        customQuizzes[existingIdx] = newQuiz;
-    } else {
-        customQuizzes.push(newQuiz);
+
+        resetForm();
+        await loadMyQuizzes();
+
+    } catch (error) {
+        console.error('Error saving quiz:', error);
+        Swal.fire('Error', 'Failed to save quiz. Please try again.', 'error');
     }
-
-    localStorage.setItem('cbt_custom_quizzes', JSON.stringify(customQuizzes));
-    Swal.fire('Success', 'Quiz saved successfully!', 'success');
-
-    resetForm();
-    loadCustomQuizzes();
 });
 
 function resetForm() {
@@ -196,131 +303,156 @@ function resetForm() {
     document.getElementById('quizInstructions').value = "";
     questions = [];
     editingQuizId = null;
-    document.getElementById('quizId').disabled = false;
+    selectedVisibility = 'public';
+    selectVisibility('public');
     addQuestion();
-    renderQuestions();
 }
 
-function loadCustomQuizzes() {
+// ==================== LOAD MY QUIZZES ====================
+
+async function loadMyQuizzes() {
     const list = document.getElementById('customQuizList');
-    const customQuizzes = JSON.parse(localStorage.getItem('cbt_custom_quizzes') || '[]');
+    const selector = document.getElementById('quizSelector');
 
-    if (customQuizzes.length === 0) {
-        list.innerHTML = "<p style='color: var(--text-muted); padding: 1rem;'>No custom quizzes yet.</p>";
-        return;
+    try {
+        myQuizzes = await getQuizzesByCreator(currentAdminId);
+
+        // Update selector dropdown
+        selector.innerHTML = '<option value="">-- Select a quiz to view submissions --</option>';
+        myQuizzes.forEach(q => {
+            selector.innerHTML += `<option value="${q.id}">${q.title}</option>`;
+        });
+
+        if (myQuizzes.length === 0) {
+            list.innerHTML = "<p style='color: var(--text-muted); padding: 1rem;'>No quizzes created yet. Create your first quiz above!</p>";
+            return;
+        }
+
+        list.innerHTML = myQuizzes.map(q => {
+            const visibilityBadge = q.visibility === 'private'
+                ? `<span style="background: var(--pending-bg); color: var(--pending-text); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem;">🔒 Private</span>`
+                : `<span style="background: var(--success-bg); color: var(--success-text); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem;">🌐 Public</span>`;
+
+            const codeDisplay = q.visibility === 'private' && q.accessCode
+                ? `<br><span style="font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">Code: ${q.accessCode}</span>`
+                : '';
+
+            return `
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color);">
+                    <div>
+                        <strong style="display: block; color: var(--text-color);">${q.title}</strong>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${q.questions.length} Qs | ${q.duration} mins</span>
+                        ${codeDisplay}
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        ${visibilityBadge}
+                        <button onclick="deleteQuiz('${q.id}')" style="color: var(--error-color); background: none; border: none; cursor: pointer; font-weight: 600;">Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Error loading quizzes:', error);
+        list.innerHTML = "<p style='color: var(--text-muted);'>Error loading quizzes.</p>";
     }
-
-    list.innerHTML = customQuizzes.map(q => `
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color);">
-            <div>
-                <strong style="display: block; color: var(--text-color);">${q.title}</strong>
-                <span style="font-size: 0.85rem; color: var(--text-muted);">${q.questions.length} Qs | ${q.duration} mins | ID: ${q.id}</span>
-            </div>
-            <div style="display: flex; gap: 0.75rem;">
-                <button onclick="editQuiz('${q.id}')" style="color: var(--primary-color); background: none; border: none; cursor: pointer; font-weight: 600;">Edit</button>
-                <button onclick="deleteQuiz('${q.id}')" style="color: var(--error-color); background: none; border: none; cursor: pointer; font-weight: 600;">Delete</button>
-            </div>
-        </div>
-    `).join('');
 }
 
-function editQuiz(id) {
-    const customQuizzes = JSON.parse(localStorage.getItem('cbt_custom_quizzes') || '[]');
-    const quiz = customQuizzes.find(q => q.id === id);
-    if (!quiz) return;
-
-    editingQuizId = id;
-    document.getElementById('quizTitle').value = quiz.title;
-    document.getElementById('quizDesc').value = quiz.description;
-    document.getElementById('quizInstructions').value = quiz.instructions || "";
-    document.getElementById('quizDuration').value = quiz.duration;
-    document.getElementById('quizId').value = quiz.id;
-    // document.getElementById('quizId').disabled = true; // Let them change ID but we handle it
-
-    questions = JSON.parse(JSON.stringify(quiz.questions));
-    renderQuestions();
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function deleteQuiz(id) {
+window.deleteQuiz = async function (id) {
     const result = await Swal.fire({
         title: 'Are you sure?',
-        text: "You won't be able to revert this!",
+        text: "This will delete the quiz and all its submissions!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: 'var(--primary-color)',
-        cancelButtonColor: 'var(--error-color)',
+        confirmButtonColor: 'var(--error-color)',
         confirmButtonText: 'Yes, delete it!'
     });
 
     if (result.isConfirmed) {
-        let customQuizzes = JSON.parse(localStorage.getItem('cbt_custom_quizzes') || '[]');
-        customQuizzes = customQuizzes.filter(q => q.id !== id);
-        localStorage.setItem('cbt_custom_quizzes', JSON.stringify(customQuizzes));
-        Swal.fire('Deleted!', 'The quiz has been deleted.', 'success');
-        loadCustomQuizzes();
-        if (editingQuizId === id) resetForm();
+        try {
+            await deleteQuizById(id);
+            Swal.fire('Deleted!', 'The quiz has been deleted.', 'success');
+            await loadMyQuizzes();
+        } catch (error) {
+            console.error('Error deleting quiz:', error);
+            Swal.fire('Error', 'Failed to delete quiz.', 'error');
+        }
     }
-}
+};
 
-let currentReviewTab = 'pending';
+// ==================== SUBMISSIONS ====================
 
-function switchReviewTab(tab) {
+window.loadSubmissionsForSelectedQuiz = async function () {
+    const quizId = document.getElementById('quizSelector').value;
+    const list = document.getElementById('submissionsReviewList');
+
+    if (!quizId) {
+        list.innerHTML = '<p style="color: var(--text-muted);">Select a quiz above to view submissions.</p>';
+        currentSubmissions = [];
+        return;
+    }
+
+    try {
+        currentSubmissions = await getSubmissionsByQuiz(quizId);
+        renderSubmissions();
+    } catch (error) {
+        console.error('Error loading submissions:', error);
+        list.innerHTML = '<p style="color: var(--text-muted);">Error loading submissions.</p>';
+    }
+};
+
+window.switchReviewTab = function (tab) {
     currentReviewTab = tab;
     ['tabPending', 'tabGraded', 'tabAll'].forEach(id => {
         document.getElementById(id).classList.remove('active');
     });
     document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-    loadSubmissions();
-}
+    renderSubmissions();
+};
 
-function loadSubmissions() {
+window.filterSubmissions = function () {
+    renderSubmissions();
+};
+
+function renderSubmissions() {
     const list = document.getElementById('submissionsReviewList');
-    if (!list) return;
-
-    let submissions = JSON.parse(localStorage.getItem('cbt_all_submissions') || '[]');
     const search = document.getElementById('submissionSearch').value.toLowerCase();
 
+    let filtered = currentSubmissions;
+
     // Filter by tab
-    let filtered = submissions;
     if (currentReviewTab === 'pending') {
-        filtered = submissions.filter(s => s.pending > 0);
+        filtered = filtered.filter(s => s.pending > 0);
     } else if (currentReviewTab === 'graded') {
-        filtered = submissions.filter(s => s.pending === 0);
+        filtered = filtered.filter(s => s.pending === 0);
     }
 
     // Filter by search
     if (search) {
         filtered = filtered.filter(s =>
-            (s.userName || '').toLowerCase().includes(search) ||
-            (s.quizTitle || '').toLowerCase().includes(search)
+            (s.userName || '').toLowerCase().includes(search)
         );
     }
 
-    // Sort by timestamp (newest first)
-    filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
     if (filtered.length === 0) {
-        list.innerHTML = `<p style='color: var(--text-muted); padding: 1rem;'>No ${currentReviewTab === 'all' ? '' : currentReviewTab} submissions found.</p>`;
+        list.innerHTML = `<p style='color: var(--text-muted);'>No ${currentReviewTab === 'all' ? '' : currentReviewTab} submissions found.</p>`;
         return;
     }
 
-    list.innerHTML = filtered.map((s, sIdx) => {
+    list.innerHTML = filtered.map((s) => {
         const isFullyGraded = s.pending === 0;
-        const isCondensed = currentReviewTab !== 'pending';
+        const date = s.timestamp?.toDate ? s.timestamp.toDate() : new Date(s.timestamp);
+        const dateStr = date.toLocaleString();
 
-        if (isCondensed) {
+        if (currentReviewTab !== 'pending') {
+            // Condensed view
             return `
                 <div class="card" style="margin-bottom: 0.75rem; padding: 1rem 1.5rem; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <strong style="display: block; color: var(--text-color);">${s.userName || 'Anonymous'}</strong>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">${s.quizTitle} | ${new Date(s.timestamp).toLocaleDateString()} ${new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${dateStr} | ⏱️ ${s.timeTaken || 'N/A'}</span>
                     </div>
                     <div style="text-align: right; display: flex; align-items: center; gap: 1.5rem;">
-                        <div style="color: var(--text-muted); font-size: 0.85rem;">
-                            ⏱️ ${s.timeTaken || 'N/A'}
-                        </div>
                         <div style="font-weight: 700; color: var(--primary-color);">
                             ${s.score} / ${s.total} (${s.percentage}%)
                         </div>
@@ -332,17 +464,18 @@ function loadSubmissions() {
             `;
         }
 
+        // Detailed view for pending
+        const pendingQuestions = s.details?.filter(d => d.status === 'pending') || [];
+
         return `
             <div class="card" style="margin-bottom: 1.5rem; border: 1px solid var(--warning-color);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                     <div>
                         <h4 style="margin-bottom: 0.25rem;">${s.userName || 'Anonymous'}</h4>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">${s.quizTitle} - ${new Date(s.timestamp).toLocaleString()} | ⏱️ ${s.timeTaken || 'N/A'}</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">${dateStr} | ⏱️ ${s.timeTaken || 'N/A'}</p>
                     </div>
                     <div style="text-align: right;">
-                        <span class="status-badge status-pending">
-                            ${s.pending} Pending
-                        </span>
+                        <span class="status-badge status-pending">${s.pending} Pending</span>
                         <div style="font-size: 0.9rem; font-weight: 700; color: var(--primary-color); margin-top: 0.4rem;">
                             Score: ${s.score} / ${s.total} (${s.percentage}%)
                         </div>
@@ -350,16 +483,16 @@ function loadSubmissions() {
                 </div>
                 
                 <div style="display: grid; gap: 0.75rem;">
-                    ${s.details.filter(d => d.status === 'pending').map(d => `
+                    ${pendingQuestions.map(d => `
                         <div style="padding: 1rem; background: var(--bg-color); border-radius: 8px; border-left: 4px solid var(--warning-color)">
                             <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">Q: ${d.text}</div>
                             <div style="font-size: 0.9rem; margin-bottom: 1rem;">
-                                <span style="color: var(--text-muted);">User Answer:</span> 
+                                <span style="color: var(--text-muted);">Answer:</span> 
                                 <span style="font-weight: 500; color: var(--text-color);">${d.selectedOption || '<i>Skipped</i>'}</span>
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
-                                <button onclick="gradeSubmission('${s.timestamp}', '${d.questionId}', true)" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--success-color);">Correct</button>
-                                <button onclick="gradeSubmission('${s.timestamp}', '${d.questionId}', false)" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--error-color); color: white;">Incorrect</button>
+                                <button onclick="gradeSubmission('${s.id}', '${d.questionId}', true)" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--success-color);">Correct</button>
+                                <button onclick="gradeSubmission('${s.id}', '${d.questionId}', false)" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--error-color); color: white;">Incorrect</button>
                             </div>
                         </div>
                     `).join('')}
@@ -369,60 +502,25 @@ function loadSubmissions() {
     }).join('');
 }
 
-function gradeSubmission(timestamp, qId, isCorrect) {
-    let submissions = JSON.parse(localStorage.getItem('cbt_all_submissions') || '[]');
-    let subIdx = submissions.findIndex(s => s.timestamp === timestamp);
-    if (subIdx === -1) return;
+window.gradeSubmission = async function (submissionId, questionId, isCorrect) {
+    try {
+        await gradeQuestion(submissionId, questionId, isCorrect);
 
-    let sub = submissions[subIdx];
-    let detailIdx = sub.details.findIndex(d => d.questionId == qId);
-    if (detailIdx === -1) return;
+        Swal.fire({
+            title: 'Graded!',
+            text: isCorrect ? 'Marked as correct' : 'Marked as incorrect',
+            icon: 'success',
+            timer: 800,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
 
-    let detail = sub.details[detailIdx];
+        // Reload submissions
+        await loadSubmissionsForSelectedQuiz();
 
-    detail.status = isCorrect ? 'correct' : 'wrong';
-    detail.isCorrect = isCorrect;
-    sub.pending--;
-    if (isCorrect) {
-        sub.score++;
+    } catch (error) {
+        console.error('Error grading:', error);
+        Swal.fire('Error', 'Failed to grade. Please try again.', 'error');
     }
-    sub.percentage = Math.round((sub.score / sub.total) * 100);
-
-    // Update global submissions
-    localStorage.setItem('cbt_all_submissions', JSON.stringify(submissions));
-
-    // Also update history for the specific user
-    let history = JSON.parse(localStorage.getItem('cbt_score_history') || '[]');
-    let historyIdx = history.findLastIndex(h => h.timestamp === timestamp);
-    if (historyIdx !== -1) {
-        history[historyIdx].score = sub.score;
-        history[historyIdx].pending = sub.pending;
-        history[historyIdx].percentage = sub.percentage;
-        localStorage.setItem('cbt_score_history', JSON.stringify(history));
-    }
-
-    // Sync with cbt_last_result if it's the one being viewed
-    let lastResStr = localStorage.getItem('cbt_last_result');
-    if (lastResStr) {
-        let lastRes = JSON.parse(lastResStr);
-        if (lastRes.timestamp === timestamp) {
-            localStorage.setItem('cbt_last_result', JSON.stringify(sub));
-        }
-    }
-
-    loadSubmissions();
-    Swal.fire({
-        title: 'Graded!',
-        text: isCorrect ? 'Marked as correct' : 'Marked as incorrect',
-        icon: 'success',
-        timer: 800,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end'
-    });
-}
-
-// Initial state
-addQuestion();
-loadCustomQuizzes();
-loadSubmissions();
+};

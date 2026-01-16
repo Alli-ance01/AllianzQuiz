@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Results</title>
+    <title>Quiz Results - AllianzQuiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -35,18 +35,58 @@
         <h2 style="margin-bottom: 1.5rem;">Review</h2>
         <div id="reviewContainer"></div>
     </main>
-    <script src="assets/js/logic.js"></script>
-    <script>
-        function renderResult() {
-            let resultStr = localStorage.getItem('cbt_last_result');
-            if (!resultStr) {
+    <script type="module">
+        import { getSubmissionById } from './assets/js/firebase-db.js';
+        import { onAuthChange } from './assets/js/firebase-auth.js';
+
+        // Apply theme
+        function applyTheme() {
+            let saved = localStorage.getItem('cbt_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            let btn = document.getElementById('themeToggleBtn');
+            if (btn) btn.innerHTML = saved === 'light' ? '🌙' : '☀️';
+        }
+        applyTheme();
+
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            let current = localStorage.getItem('cbt_theme') || 'light';
+            let next = current === 'light' ? 'dark' : 'light';
+            localStorage.setItem('cbt_theme', next);
+            applyTheme();
+        });
+
+        async function renderResult() {
+            // Check for submission ID in URL
+            const params = new URLSearchParams(window.location.search);
+            const submissionId = params.get('id');
+
+            let res = null;
+
+            if (submissionId) {
+                // Fetch from Firestore
+                try {
+                    res = await getSubmissionById(submissionId);
+                } catch (error) {
+                    console.error('Error fetching submission:', error);
+                }
+            }
+
+            // Fallback to localStorage for immediate after-quiz view
+            if (!res) {
+                const resultStr = localStorage.getItem('cbt_last_result');
+                if (resultStr) {
+                    res = JSON.parse(resultStr);
+                }
+            }
+
+            if (!res) {
                 window.location.href = 'dashboard.html';
                 return;
             }
-            let res = JSON.parse(resultStr);
-            let percentage = res.percentage;
-            let isPass = percentage >= 50;
-            let circle = document.getElementById('scoreCircle');
+
+            const percentage = res.percentage;
+            const isPass = percentage >= 50;
+            const circle = document.getElementById('scoreCircle');
             circle.textContent = percentage + "%";
 
             circle.classList.remove('pass', 'fail');
@@ -69,38 +109,41 @@
             }
             document.getElementById('resultSummary').innerHTML = summaryHtml;
 
-            let container = document.getElementById('reviewContainer');
+            const container = document.getElementById('reviewContainer');
             let html = "";
-            for (let i = 0; i < res.details.length; i++) {
-                let item = res.details[i];
-                let statusClass = 'status-' + item.status;
-                let statusText = item.status.charAt(0).toUpperCase() + item.status.slice(1);
 
-                html += '<div class="review-card">' +
-                    '<div class="review-header">' +
-                    '<span style="opacity: 0.6;">Q' + (i + 1) + '.</span>' +
-                    '<span style="flex-grow: 1;">' + item.text + '</span>' +
-                    '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
-                    '</div>' +
-                    '<div class="answer-row">' +
-                    '<div><span class="answer-label">Your Answer:</span> <span class="answer-value">' + (item.selectedOption || 'Skipped') + '</span></div>' +
-                    (item.status !== 'pending' && !item.isCorrect ? '<div><span class="answer-label">Correct Answer:</span> <span class="correct-value">' + item.correctKey + '</span></div>' : '') +
-                    '</div>' +
-                    '</div>';
+            if (res.details && res.details.length > 0) {
+                for (let i = 0; i < res.details.length; i++) {
+                    const item = res.details[i];
+                    const statusClass = 'status-' + item.status;
+                    const statusText = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+
+                    html += '<div class="review-card">' +
+                        '<div class="review-header">' +
+                        '<span style="opacity: 0.6;">Q' + (i + 1) + '.</span>' +
+                        '<span style="flex-grow: 1;">' + item.text + '</span>' +
+                        '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                        '</div>' +
+                        '<div class="answer-row">' +
+                        '<div><span class="answer-label">Your Answer:</span> <span class="answer-value">' + (item.selectedOption || 'Skipped') + '</span></div>' +
+                        (item.status !== 'pending' && !item.isCorrect ? '<div><span class="answer-label">Correct Answer:</span> <span class="correct-value">' + item.correctKey + '</span></div>' : '') +
+                        '</div>' +
+                        '</div>';
+                }
+            } else {
+                html = '<p style="color: var(--text-muted);">No detailed review available.</p>';
             }
+
             container.innerHTML = html;
         }
 
-        document.addEventListener('DOMContentLoaded', renderResult);
-
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'cbt_last_result') {
-                renderResult();
+        // Check auth and render
+        onAuthChange(async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
             }
-        });
-
-        window.addEventListener('pageshow', (e) => {
-            renderResult();
+            await renderResult();
         });
     </script>
 </body>

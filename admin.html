@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - AllianzQuiz</title>
+    <title>Admin Dashboard - AllianzQuiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -18,7 +18,7 @@
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
                 <button id="themeToggleBtn" class="theme-toggle">🌙</button>
-                <a href="dashboard.html" class="btn" style="color: grey; font-size: 0.9rem;">Dashboard</a>
+                <button onclick="logout()" class="btn btn-secondary" style="font-size: 0.9rem;">Logout</button>
             </div>
         </div>
     </nav>
@@ -26,8 +26,8 @@
     <main class="container" style="margin-top: 2rem; padding-bottom: 4rem; max-width: 900px;">
         <div class="dashboard-header">
             <div>
-                <h1>Quiz Management</h1>
-                <p>Create and manage your custom quizzes.</p>
+                <h1 id="welcomeMsg">Admin Dashboard</h1>
+                <p id="adminEmail" style="color: var(--text-muted);">Manage your quizzes</p>
             </div>
         </div>
 
@@ -56,9 +56,25 @@
                         <input type="number" id="quizDuration" placeholder="10" required min="1">
                     </div>
                     <div class="input-group">
-                        <label for="quizId">Quiz ID (Unique)</label>
-                        <input type="text" id="quizId" placeholder="sci_001" required>
+                        <label>Quiz Visibility</label>
+                        <div class="role-selector" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                            <button type="button" class="role-btn selected" data-visibility="public"
+                                onclick="selectVisibility('public')">
+                                🌐 Public
+                            </button>
+                            <button type="button" class="role-btn" data-visibility="private"
+                                onclick="selectVisibility('private')">
+                                🔒 Private
+                            </button>
+                        </div>
                     </div>
+                </div>
+
+                <div id="accessCodeInfo"
+                    style="display: none; background: var(--pending-bg); color: var(--pending-text); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <strong>🔐 Private Quiz</strong>
+                    <p style="margin-top: 0.25rem; font-size: 0.9rem;">An access code will be automatically generated
+                        when you save. Share this code with your students.</p>
                 </div>
 
                 <h3 style="margin: 2rem 0 1rem;">Questions</h3>
@@ -78,14 +94,22 @@
         </section>
 
         <section class="admin-section">
-            <h2 style="margin-bottom: 1.5rem;">Your Custom Quizzes</h2>
+            <h2 style="margin-bottom: 1.5rem;">My Quizzes</h2>
             <div id="customQuizList" style="display: grid; gap: 1rem;">
-
+                <p style="color: var(--text-muted);">Loading...</p>
             </div>
         </section>
 
         <section class="admin-section">
             <h2 style="margin-bottom: 1.5rem;">Submission Reviews</h2>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="font-weight: 500; margin-bottom: 0.5rem; display: block;">Select Quiz</label>
+                <select id="quizSelector" onchange="loadSubmissionsForSelectedQuiz()"
+                    style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--text-color); font-size: 1rem;">
+                    <option value="">-- Select a quiz to view submissions --</option>
+                </select>
+            </div>
 
             <div style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
                 <div class="type-selector" style="margin-bottom: 0;">
@@ -95,19 +119,18 @@
                         onclick="switchReviewTab('graded')">Graded</button>
                     <button type="button" class="type-btn" id="tabAll" onclick="switchReviewTab('all')">All</button>
                 </div>
-                <input type="text" id="submissionSearch" placeholder="Search by name or quiz..."
+                <input type="text" id="submissionSearch" placeholder="Search by name..."
                     style="flex-grow: 1; padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);"
-                    oninput="loadSubmissions()">
+                    oninput="filterSubmissions()">
             </div>
 
             <div id="submissionsReviewList" style="display: grid; gap: 1rem;">
-                <p style="color: var(--text-muted);">No submissions to review.</p>
+                <p style="color: var(--text-muted);">Select a quiz above to view submissions.</p>
             </div>
         </section>
     </main>
 
-    <script src="assets/js/logic.js"></script>
-    <script src="assets/js/admin.js"></script>
+    <script type="module" src="assets/js/admin.js"></script>
 </body>
 
 </html>

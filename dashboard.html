@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Dashboard - AllianzQuiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -26,7 +26,7 @@
         <div class="dashboard-header">
             <div>
                 <h1 id="welcomeMsg">Welcome back!</h1>
-                <p>Ready today?</p>
+                <p>Ready to test your knowledge?</p>
             </div>
             <div class="user-info">
                 <div id="userAvatar" class="avatar">U</div>
@@ -36,11 +36,25 @@
                 </div>
             </div>
         </div>
-        <h2 style="margin-bottom: 1.5rem;">Quizzes</h2>
+
+        <!-- Quiz Code Entry for Private Quizzes -->
+        <div class="card" style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <div style="flex-grow: 1;">
+                <h3 style="margin-bottom: 0.25rem;">Have a Quiz Code?</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Enter the code to access a private quiz</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="quizCodeInput" placeholder="Enter code..."
+                    style="padding: 0.6rem 1rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--input-bg); color: var(--text-color); text-transform: uppercase; width: 140px; font-weight: 600; letter-spacing: 1px;">
+                <button onclick="joinPrivateQuiz()" class="btn btn-primary" style="padding: 0.6rem 1rem;">Join</button>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 1.5rem;">Available Quizzes</h2>
         <div id="quizGrid" class="quiz-grid" style="margin-bottom: 3rem;"></div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2>Recent History</h2>
+            <h2>My History</h2>
             <button onclick="clearHistory()" class="btn btn-secondary"
                 style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Clear All</button>
         </div>
@@ -49,8 +63,7 @@
         </div>
     </main>
     <script src="assets/js/data.js"></script>
-    <script src="assets/js/logic.js"></script>
-    <script src="assets/js/script.js"></script>
+    <script type="module" src="assets/js/script.js"></script>
 </body>
 
 </html>
