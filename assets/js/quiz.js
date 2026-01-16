@@ -3,6 +3,7 @@
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import { getQuizById, saveSubmission } from './firebase-db.js';
 import { showError, showSuccess, showLoadingToast, confirmAction } from './ui-helpers.js';
+import './logic.js';
 
 // ==================== GLOBAL STATE ====================
 
