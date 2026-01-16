@@ -11,7 +11,8 @@ import {
     updateDoc,
     deleteDoc,
     query,
-    where
+    where,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ==================== CACHE SYSTEM ====================
@@ -164,7 +165,7 @@ export async function deleteQuizById(quizId) {
 export async function saveSubmission(submissionData) {
     const docRef = await addDoc(collection(db, 'attempts'), {
         ...submissionData,
-        timestamp: new Date()
+        timestamp: serverTimestamp()
     });
     return { id: docRef.id, ...submissionData };
 }

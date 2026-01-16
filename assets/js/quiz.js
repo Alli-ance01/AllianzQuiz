@@ -393,7 +393,7 @@ async function executeSubmit() {
         quizId: myQuizData.id,
         quizTitle: myQuizData.title,
         quizCreatorId: myQuizData.createdBy || null,
-        userId: currentUserId,
+        userId: currentUserId || null,
         userName: currentUserProfile?.displayName || 'Anonymous',
         userEmail: currentUserProfile?.email || '',
         timeTaken: timeTakenFormatted,
@@ -401,7 +401,11 @@ async function executeSubmit() {
         pending: pending,
         total: myQuizData.questions.length,
         percentage: Math.round((counts / myQuizData.questions.length) * 100),
-        details: report
+        details: report.map(item => ({
+            ...item,
+            selectedOption: item.selectedOption === undefined ? null : item.selectedOption,
+            correctKey: item.correctKey === undefined ? null : item.correctKey
+        }))
     };
 
     try {
