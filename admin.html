@@ -31,22 +31,21 @@
             </div>
         </div>
 
-        <section class="admin-section" id="analyticsSection"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-            <div class="card" style="padding: 1.5rem; text-align: center;">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
-                <div style="font-size: 1.5rem; font-weight: 700;" id="statTotalQuizzes">0</div>
-                <div style="color: var(--text-muted); font-size: 0.9rem;">Total Quizzes</div>
+        <section class="admin-section analytics-grid" id="analyticsSection">
+            <div class="card analytics-card">
+                <div class="analytics-icon">📝</div>
+                <div class="analytics-value" id="statTotalQuizzes">0</div>
+                <div class="analytics-label">Total Quizzes</div>
             </div>
-            <div class="card" style="padding: 1.5rem; text-align: center;">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">👥</div>
-                <div style="font-size: 1.5rem; font-weight: 700;" id="statTotalAttempts">0</div>
-                <div style="color: var(--text-muted); font-size: 0.9rem;">Total Attempts</div>
+            <div class="card analytics-card">
+                <div class="analytics-icon">👥</div>
+                <div class="analytics-value" id="statTotalAttempts">0</div>
+                <div class="analytics-label">Total Attempts</div>
             </div>
-            <div class="card" style="padding: 1.5rem; text-align: center;">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📈</div>
-                <div style="font-size: 1.5rem; font-weight: 700;" id="statAvgScore">0%</div>
-                <div style="color: var(--text-muted); font-size: 0.9rem;">Average Score</div>
+            <div class="card analytics-card">
+                <div class="analytics-icon">📈</div>
+                <div class="analytics-value" id="statAvgScore">0%</div>
+                <div class="analytics-label">Average Score</div>
             </div>
         </section>
 
