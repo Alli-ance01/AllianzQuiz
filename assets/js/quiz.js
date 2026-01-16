@@ -2,6 +2,7 @@
 
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import { getQuizById, saveSubmission } from './firebase-db.js';
+import { showError, showSuccess, showLoadingToast, confirmAction } from './ui-helpers.js';
 
 // ==================== GLOBAL STATE ====================
 
@@ -320,23 +321,18 @@ function renderPal() {
 
 // ==================== SUBMISSION ====================
 
-window.submitQ = function (auto) {
+window.submitQ = async function (auto) {
     if (auto) {
         executeSubmit();
     } else {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "Do you want to submit your answers and finish the quiz?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: 'var(--primary-color)',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, finish it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                executeSubmit();
-            }
-        });
+        const confirmed = await confirmAction(
+            'Finish Quiz?',
+            'Do you want to submit your answers and finish the quiz?',
+            'Yes, finish it'
+        );
+        if (confirmed) {
+            executeSubmit();
+        }
     }
 };
 
@@ -409,6 +405,8 @@ async function executeSubmit() {
     };
 
     try {
+        showLoadingToast('Submitting your quiz...');
+
         // Save to Firestore
         const savedSubmission = await saveSubmission(submissionData);
 
@@ -421,17 +419,16 @@ async function executeSubmit() {
         window.location.href = 'result.html';
 
     } catch (error) {
-        console.error('Error saving submission:', error);
+        console.error('Submission technical error:', error);
 
         // Fallback: still show result even if save failed
         localStorage.setItem('cbt_last_result', JSON.stringify(submissionData));
 
-        Swal.fire({
-            title: 'Warning',
-            text: 'Quiz completed but there was an issue saving to the server. Your result is saved locally.',
-            icon: 'warning'
-        }).then(() => {
+        showError(error, 'Submission Issue');
+
+        // Give the user a moment to see the error, then redirect anyway so they don't lose their session
+        setTimeout(() => {
             window.location.href = 'result.html';
-        });
+        }, 3000);
     }
 }
