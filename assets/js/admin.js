@@ -22,6 +22,28 @@ let myQuizzes = [];
 let currentSubmissions = [];
 let currentReviewTab = 'pending';
 
+// ==================== SKELETON LOADERS ====================
+
+const initialQuizSkeleton = `
+    <div class="card skeleton-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.5rem;">
+        <div style="flex-grow: 1;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text" style="width: 30%;"></div>
+        </div>
+        <div class="skeleton" style="width: 80px; height: 30px; border-radius: 20px;"></div>
+    </div>
+`.repeat(3);
+
+const initialReviewSkeleton = `
+    <div class="card skeleton-card" style="margin-bottom: 0.75rem;">
+        <div style="display: flex; justify-content: space-between;">
+            <div class="skeleton skeleton-title" style="width: 40%;"></div>
+            <div class="skeleton" style="width: 60px; height: 20px;"></div>
+        </div>
+        <div class="skeleton skeleton-text"></div>
+    </div>
+`.repeat(4);
+
 // Make logout available globally
 window.logout = logout;
 
@@ -323,6 +345,8 @@ async function loadMyQuizzes() {
     const list = document.getElementById('customQuizList');
     const selector = document.getElementById('quizSelector');
 
+    list.innerHTML = initialQuizSkeleton;
+
     try {
         myQuizzes = await getQuizzesByCreator(currentAdminId);
 
@@ -347,7 +371,7 @@ async function loadMyQuizzes() {
                 : '';
 
             return `
-                <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color);">
+                <div class="card fade-in" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color);">
                     <div>
                         <strong style="display: block; color: var(--text-color);">${q.title}</strong>
                         <span style="font-size: 0.85rem; color: var(--text-muted);">${q.questions.length} Qs | ${q.duration} mins</span>
@@ -485,6 +509,8 @@ window.loadSubmissionsForSelectedQuiz = async function () {
         return;
     }
 
+    list.innerHTML = initialReviewSkeleton;
+
     try {
         currentSubmissions = await getSubmissionsByQuiz(quizId);
         renderSubmissions();
@@ -577,7 +603,7 @@ function renderSubmissions() {
         if (currentReviewTab !== 'pending') {
             // Condensed view
             return `
-                <div class="card" style="margin-bottom: 0.75rem; padding: 1rem 1.5rem; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <div class="card fade-in" style="margin-bottom: 0.75rem; padding: 1rem 1.5rem; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <strong style="display: block; color: var(--text-color);">${s.userName || 'Anonymous'}</strong>
                         <span style="font-size: 0.85rem; color: var(--text-muted);">${dateStr} | ⏱️ ${s.timeTaken || 'N/A'}</span>
@@ -598,7 +624,7 @@ function renderSubmissions() {
         const pendingQuestions = s.details?.filter(d => d.status === 'pending') || [];
 
         return `
-            <div class="card" style="margin-bottom: 1.5rem; border: 1px solid var(--warning-color);">
+            <div class="card fade-in" style="margin-bottom: 1.5rem; border: 1px solid var(--warning-color);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                     <div>
                         <h4 style="margin-bottom: 0.25rem;">${s.userName || 'Anonymous'}</h4>

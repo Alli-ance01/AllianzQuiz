@@ -4,7 +4,12 @@ import { getUser, logout, checkAuth } from './logic.js';
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import { getPublicQuizzes, getQuizByAccessCode, getSubmissionsByUser } from './firebase-db.js';
 
-// Check auth on page load
+// ==================== GLOBAL STATE ====================
+
+let currentUserId = null;
+
+// ==================== AUTH CHECK ====================
+
 onAuthChange(async (user) => {
     if (!user) {
         window.location.href = 'index.html';
@@ -18,6 +23,8 @@ onAuthChange(async (user) => {
         window.location.href = 'admin.html';
         return;
     }
+
+    currentUserId = user.uid;
 
     // Load user info
     document.getElementById('welcomeMsg').textContent = "Welcome back, " + (profile?.displayName || 'User').split(' ')[0] + "!";
@@ -33,64 +40,100 @@ onAuthChange(async (user) => {
 // Make logout available globally
 window.logout = logout;
 
-// Load quizzes for student dashboard
+// ==================== SKELETON LOADERS ====================
+
+const initialHistorySkeleton = `
+    <div class="card skeleton-card" style="margin-bottom:0.75rem;">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text"></div>
+    </div>
+`.repeat(3);
+
+const initialQuizSkeleton = `
+    <div class="card skeleton-card" style="display: flex; flex-direction: column;">
+        <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%; margin-bottom: 1rem;"></div>
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text" style="height: 3rem; margin-bottom: 1.5rem;"></div>
+        <div class="skeleton" style="width: 40%; height: 2rem; margin-top: auto;"></div>
+    </div>
+`.repeat(4);
+
+// ==================== LOADING FUNCTIONS ====================
+
 async function loadQuizzes() {
-    const quizGrid = document.getElementById('quizGrid');
-    if (!quizGrid) return;
+    const grid = document.getElementById('quizGrid');
+    if (!grid) return;
+
+    grid.innerHTML = initialQuizSkeleton;
 
     try {
-        // Get default quizzes from data.js (myData is a global from data.js)
-        const defaultQuizzes = typeof myData !== 'undefined' ? myData : [];
-
-        // Get public quizzes from Firestore
         const publicQuizzes = await getPublicQuizzes();
-
-        // Combine them
+        const defaultQuizzes = typeof myData !== 'undefined' ? myData : [];
         const allQuizzes = [...defaultQuizzes, ...publicQuizzes];
 
         if (allQuizzes.length === 0) {
-            quizGrid.innerHTML = '<p style="color: var(--text-muted);">No quizzes available yet.</p>';
+            grid.innerHTML = '<p style="color: var(--text-muted);">No quizzes available yet.</p>';
             return;
         }
 
-        let html = "";
-        for (let i = 0; i < allQuizzes.length; i++) {
-            const quiz = allQuizzes[i];
-            const isFirestore = quiz.createdBy !== undefined;
-            const icon = quiz.id.startsWith('gk') ? '🌍' : quiz.id.startsWith('math') ? '🔢' : '📝';
-
-            html += `
-                <div class="quiz-card">
-                    <div class="quiz-icon">${icon}</div>
-                    <h3>${quiz.title}</h3>
-                    <p style="color: grey; margin-bottom: 1rem; flex-grow: 1;">${quiz.description}</p>
-                    <div class="quiz-meta">
-                        <span>⏱️ ${quiz.duration} mins</span>
-                        <span>❓ ${quiz.questions.length} Questions</span>
-                    </div>
-                    <div class="quiz-footer">
-                        <button onclick="startQuiz('${quiz.id}', ${isFirestore})" class="btn btn-primary" style="width: 100%;">
-                            Start Quiz
-                        </button>
-                    </div>
+        grid.innerHTML = allQuizzes.map(q => `
+            <div class="card quiz-card fade-in">
+                <div class="quiz-icon">📝</div>
+                <h3>${q.title}</h3>
+                <p>${q.description}</p>
+                <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">${q.duration} mins | ${q.questions.length} Qs</span>
+                    <a href="quiz.html?id=${q.id}${q.createdBy ? '&source=firestore' : ''}" class="btn btn-primary">Start Quiz</a>
                 </div>
-            `;
-        }
-        quizGrid.innerHTML = html;
-
+            </div>
+        `).join('');
     } catch (error) {
         console.error('Error loading quizzes:', error);
-        quizGrid.innerHTML = '<p style="color: var(--text-muted);">Error loading quizzes.</p>';
+        grid.innerHTML = "<p style='color: var(--text-muted);'>Error loading quizzes.</p>";
     }
 }
 
-// Start a quiz
-window.startQuiz = function (quizId, isFirestore = false) {
-    const suffix = isFirestore ? '&source=firestore' : '';
-    window.location.href = `quiz.html?id=${quizId}${suffix}`;
-};
+async function loadHistory() {
+    const list = document.getElementById('historyList');
+    if (!list) return;
 
-// Join a private quiz via code
+    list.innerHTML = initialHistorySkeleton;
+
+    try {
+        const historyData = await getSubmissionsByUser(currentUserId);
+
+        if (historyData.length === 0) {
+            list.innerHTML = "<p style='color: var(--text-muted); padding: 1rem;'>No recent activity. Start a quiz to see your history!</p>";
+            return;
+        }
+
+        list.innerHTML = historyData.map(h => {
+            const date = h.timestamp?.toDate ? h.timestamp.toDate() : new Date(h.timestamp);
+            const dateStr = date.toLocaleDateString(undefined, {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            return `
+                <div class="history-item card fade-in">
+                    <div>
+                        <strong>${h.quizTitle}</strong>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">${dateStr} | Score: ${h.score}/${h.total}</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <div class="percentage-badge ${h.percentage >= 50 ? 'pass' : 'fail'}">${h.percentage}%</div>
+                        <a href="result.html?id=${h.id}" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: var(--bg-color); color: var(--text-muted);">View</a>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading history:', error);
+        list.innerHTML = "<p style='color: var(--text-muted);'>Error loading history.</p>";
+    }
+}
+
+// ==================== ACTIONS ====================
+
 window.joinPrivateQuiz = async function () {
     const codeInput = document.getElementById('quizCodeInput');
     const code = codeInput.value.trim().toUpperCase();
@@ -114,59 +157,6 @@ window.joinPrivateQuiz = async function () {
     }
 };
 
-// Load user's quiz history
-async function loadHistory() {
-    const historyList = document.getElementById('historyList');
-    if (!historyList) return;
-
-    try {
-        const user = getCurrentUser();
-        if (!user) return;
-
-        const history = await getSubmissionsByUser(user.uid);
-
-        if (history.length === 0) {
-            historyList.innerHTML = "<p style='color: var(--text-muted);'>No attempts yet. Take a quiz to see your history!</p>";
-            return;
-        }
-
-        historyList.innerHTML = history.map(item => {
-            const date = item.timestamp?.toDate ? item.timestamp.toDate() : new Date(item.timestamp);
-            const dateStr = date.toLocaleDateString(undefined, {
-                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
-
-            return `
-                <div class="history-item">
-                    <div class="history-info">
-                        <strong style="color: var(--text-color);">${item.quizTitle}</strong>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">${dateStr} ${item.timeTaken ? `| ⏱️ ${item.timeTaken}` : ''}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="text-align: right;">
-                            <span class="history-score">${item.score} / ${item.total}${item.pending > 0 ? ` <small>(${item.pending} pend.)</small>` : ''}</span>
-                            <div class="history-percentage" style="display: inline-block; margin-left: 0.5rem;">${item.percentage}%</div>
-                        </div>
-                        <button onclick="viewResult('${item.id}')" class="btn" style="padding: 0.4rem; background: var(--secondary-bg); color: var(--secondary-text); border-radius: 8px;" title="View Result">
-                            👁️
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-    } catch (error) {
-        console.error('Error loading history:', error);
-        historyList.innerHTML = "<p style='color: var(--text-muted);'>Error loading history.</p>";
-    }
-}
-
-// View a specific result
-window.viewResult = function (submissionId) {
-    window.location.href = `result.html?id=${submissionId}`;
-};
-
-// Clear history (now just a message since data is in Firestore)
 window.clearHistory = async function () {
     Swal.fire({
         title: 'Note',

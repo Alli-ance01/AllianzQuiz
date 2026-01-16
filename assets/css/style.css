@@ -774,6 +774,61 @@ a {
     color: var(--pending-text);
 }
 
+/* Skeleton Loaders */
+.skeleton {
+    background: var(--bg-color);
+    background: linear-gradient(90deg, var(--bg-color) 25%, var(--border-color) 50%, var(--bg-color) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite linear;
+    border-radius: 8px;
+    height: 1rem;
+    width: 100%;
+}
+
+.skeleton-card {
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.skeleton-title {
+    height: 1.25rem;
+    width: 60%;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-text {
+    height: 0.85rem;
+    width: 90%;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .quiz-instructions {
     background: var(--bg-color);
     padding: 1rem 1.5rem;
