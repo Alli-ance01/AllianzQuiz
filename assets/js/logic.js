@@ -231,9 +231,17 @@ function init() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        init();
+        registerSW();
+    });
+} else {
     init();
+    registerSW();
+}
 
+function registerSW() {
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -242,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(err => console.log('Service Worker registration failed:', err));
         });
     }
-});
+}
 
 // Export for other modules
 export { applyTheme, toggleTheme };
