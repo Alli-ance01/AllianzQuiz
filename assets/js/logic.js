@@ -1,6 +1,6 @@
 // Logic.js - Theme management and Firebase Authentication
 
-import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin } from './firebase-auth.js';
+import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin, resetPassword } from './firebase-auth.js';
 import { showSuccess, showError, confirmAction } from './ui-helpers.js';
 import { clearCache } from './firebase-db.js';
 
@@ -53,6 +53,7 @@ window.switchAuthMode = function (mode) {
         signUpTab.classList.add('active');
         nameGroup.style.display = 'block';
         roleGroup.style.display = 'block';
+        document.getElementById('forgotPasswordContainer').style.display = 'none';
         submitBtn.textContent = 'Create Account';
         formTitle.textContent = 'Create Account';
         formSubtitle.textContent = 'Join AllianzQuiz today';
@@ -62,10 +63,53 @@ window.switchAuthMode = function (mode) {
         signUpTab.classList.remove('active');
         nameGroup.style.display = 'none';
         roleGroup.style.display = 'none';
+        document.getElementById('forgotPasswordContainer').style.display = 'block';
         submitBtn.textContent = 'Sign In';
         formTitle.textContent = 'Welcome Back';
         formSubtitle.textContent = 'Sign in to continue';
         usernameInput.required = false;
+    }
+};
+
+// Handle Forgot Password
+window.handleForgotPassword = async function () {
+    const { value: email } = await Swal.fire({
+        title: 'Reset Password',
+        input: 'email',
+        inputLabel: 'Enter your email address',
+        inputPlaceholder: 'john@example.com',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--primary-color)',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You need to write something!'
+            }
+        }
+    });
+
+    if (email) {
+        try {
+            await resetPassword(email);
+            showSuccess('Reset Link Sent', 'Check your email for the password reset link.');
+        } catch (error) {
+            showError(error, 'Reset Failed');
+        }
+    }
+};
+
+// Handle Resend Verification
+window.resendVerification = async function () {
+    const user = getCurrentUser();
+    if (user) {
+        try {
+            const { sendEmailVerification } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+            await sendEmailVerification(user);
+            showSuccess('Sent!', 'Verification email has been resent.');
+        } catch (error) {
+            showError(error, 'Resend Failed');
+        }
+    } else {
+        Swal.fire('Error', 'No user found. Please sign in first.', 'error');
     }
 };
 
@@ -179,20 +223,38 @@ function init() {
                     }
 
                     await signUp(email, password, displayName, selectedRole);
-                    await showSuccess('Account Created!', 'Welcome to AllianzQuiz!');
+                    await showSuccess('Verification Sent!', 'Please check your email and verify your account before signing in.');
 
-                    // Redirect based on role
-                    if (selectedRole === 'admin' || selectedRole === 'teacher') {
-                        window.location.href = 'admin.html';
-                    } else {
-                        window.location.href = 'dashboard.html';
-                    }
+                    // Switch to sign in mode
+                    window.switchAuthMode('signin');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sign In';
 
                 } else {
                     await signIn(email, password);
 
                     // Get user profile to determine redirect
                     const user = getCurrentUser();
+
+                    // Check email verification
+                    if (!user.emailVerified) {
+                        await signOutUser();
+                        Swal.fire({
+                            title: 'Email Not Verified',
+                            html: `
+                                <p>Please verify your email address before signing in.</p>
+                                <button onclick="resendVerification()" class="btn btn-secondary" style="margin-top: 1rem; font-size: 0.8rem;">
+                                    Resend Verification Email
+                                </button>
+                            `,
+                            icon: 'warning',
+                            confirmButtonColor: 'var(--primary-color)'
+                        });
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Sign In';
+                        return;
+                    }
+
                     const profile = await getUserProfile(user.uid);
 
                     if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {

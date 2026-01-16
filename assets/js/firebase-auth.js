@@ -5,7 +5,9 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    sendEmailVerification,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -22,7 +24,15 @@ export async function signUp(email, password, displayName, role = 'student') {
         createdAt: new Date()
     });
 
+    // Send email verification
+    await sendEmailVerification(user);
+
     return user;
+}
+
+// Send password reset email
+export async function resetPassword(email) {
+    await sendPasswordResetEmail(auth, email);
 }
 
 // Sign in existing user
