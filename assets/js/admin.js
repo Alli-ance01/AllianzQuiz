@@ -429,8 +429,12 @@ async function updateAnalytics() {
 
         const allSubs = await getSubmissionsByQuizCreator(currentAdminId);
 
-        totalAttempts = allSubs.length;
-        allSubs.forEach(s => totalScorePercent += s.percentage);
+        // Filter submissions to only include those belonging to currently existing quizzes
+        const activeQuizIds = new Set(quizzes.map(q => q.id));
+        const validSubs = allSubs.filter(s => activeQuizIds.has(s.quizId));
+
+        totalAttempts = validSubs.length;
+        validSubs.forEach(s => totalScorePercent += s.percentage);
 
         document.getElementById('statTotalAttempts').textContent = totalAttempts;
         const avg = totalAttempts > 0 ? Math.round(totalScorePercent / totalAttempts) : 0;
