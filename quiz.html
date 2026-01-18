@@ -18,6 +18,7 @@
         <div class="container nav-content">
             <div style="font-weight: 600;" id="quizTitle">Loading...</div>
             <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="calcToggleBtn" class="theme-toggle">🧮</button>
                 <button id="themeToggleBtn" class="theme-toggle">🌙</button>
                 <div style="font-size: 0.9rem;">Q <span id="currentQNum">1</span> / <span id="totalQNum">0</span></div>
             </div>
@@ -44,7 +45,44 @@
             </div>
         </section>
     </main>
+
+    <!-- Floating Calculator Widget -->
+    <div id="calculatorWidget" class="calculator-widget" style="display: none;">
+        <div class="calc-header" id="calcHeader">
+            <span>Calculator</span>
+            <button id="closeCalc" class="calc-close">&times;</button>
+        </div>
+        <div class="calc-display-area">
+            <input type="text" id="calcDisplay" readonly value="0">
+        </div>
+        <div class="calc-buttons">
+            <button class="calc-btn utility" onclick="calcAction('AC')">AC</button>
+            <button class="calc-btn utility" onclick="calcAction('DEL')">DEL</button>
+            <button class="calc-btn operator" onclick="calcAction('/')">÷</button>
+            <button class="calc-btn operator" onclick="calcAction('*')">×</button>
+
+            <button class="calc-btn" onclick="calcAction('7')">7</button>
+            <button class="calc-btn" onclick="calcAction('8')">8</button>
+            <button class="calc-btn" onclick="calcAction('9')">9</button>
+            <button class="calc-btn operator" onclick="calcAction('-')">-</button>
+
+            <button class="calc-btn" onclick="calcAction('4')">4</button>
+            <button class="calc-btn" onclick="calcAction('5')">5</button>
+            <button class="calc-btn" onclick="calcAction('6')">6</button>
+            <button class="calc-btn operator" onclick="calcAction('+')">+</button>
+
+            <button class="calc-btn" onclick="calcAction('1')">1</button>
+            <button class="calc-btn" onclick="calcAction('2')">2</button>
+            <button class="calc-btn" onclick="calcAction('3')">3</button>
+            <button class="calc-btn equal" onclick="calcAction('=')">=</button>
+
+            <button class="calc-btn" onclick="calcAction('0')" style="grid-column: span 2;">0</button>
+            <button class="calc-btn" onclick="calcAction('.')">.</button>
+        </div>
+    </div>
+
     <script src="assets/js/data.js"></script>
+    <script src="assets/js/calculator.js"></script>
     <script type="module" src="assets/js/quiz.js"></script>
 </body>
 
