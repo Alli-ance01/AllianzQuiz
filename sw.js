@@ -1,4 +1,4 @@
-const CACHE_NAME = 'allianz-quiz-v1';
+const CACHE_NAME = 'allianz-quiz-v2';
 const ASSETS_TO_CACHE = [
     'index.html',
     'dashboard.html',
@@ -10,6 +10,7 @@ const ASSETS_TO_CACHE = [
     'assets/js/script.js',
     'assets/js/admin.js',
     'assets/js/quiz.js',
+    'assets/js/calculator.js',
     'assets/js/firebase-config.js',
     'assets/js/firebase-auth.js',
     'assets/js/firebase-db.js',
