@@ -223,7 +223,6 @@ function init() {
                     }
 
                     await signUp(email, password, displayName, selectedRole);
-                    await signOutUser(); // Prevent auto-login until verified
                     await showSuccess('Verification Sent!', 'Please check your email and verify your account before signing in.');
 
                     // Switch to sign in mode
@@ -283,11 +282,6 @@ function init() {
         // On login page, check if already logged in
         onAuthChange(async (user) => {
             if (user) {
-                if (!user.emailVerified) {
-                    await signOutUser();
-                    return;
-                }
-
                 const profile = await getUserProfile(user.uid);
                 if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
                     window.location.href = 'admin.html';

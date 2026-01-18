@@ -54,11 +54,6 @@ onAuthChange(async (user) => {
         return;
     }
 
-    if (!user.emailVerified) {
-        window.location.href = 'index.html';
-        return;
-    }
-
     // Verify this is an admin
     const profile = await getUserProfile(user.uid);
     if (!profile || (profile.role !== 'admin' && profile.role !== 'teacher')) {
