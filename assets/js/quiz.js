@@ -96,16 +96,15 @@ async function quizInit() {
             if (result.isConfirmed) {
                 // Restore state
                 myQuizData.questions = savedState.questions;
-                myAnswers = savedState.answers;
-                myFlags = savedState.flags;
-                timeLft = savedState.timeLft;
-                currentQIdx = savedState.currentQIdx;
+                myAnswers = savedState.answers || {};
+                myFlags = savedState.flags || {};
+                timeLft = savedState.timeLft || (myQuizData.duration * 60);
+                currentQIdx = savedState.currentQIdx || 0;
                 startTime = savedState.startTime || Date.now();
 
                 document.getElementById('quizTitle').textContent = myQuizData.title;
                 document.getElementById('totalQNum').textContent = myQuizData.questions.length;
 
-                startTime = Date.now(); // We refine this later if needed, but for now we reset start reference
                 startT();
                 loadQ(currentQIdx);
                 return;
