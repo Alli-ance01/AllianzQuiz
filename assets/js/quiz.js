@@ -30,6 +30,7 @@ onAuthChange(async (user) => {
 
     // Initialize quiz
     await quizInit();
+    applyProtection();
 });
 
 // ==================== QUIZ INITIALIZATION ====================
@@ -355,10 +356,10 @@ async function executeSubmit() {
         const item = {
             questionId: q.id,
             text: q.text,
-            type: q.type,
-            scoring: q.scoring,
+            type: q.type || 'mcq',
+            scoring: q.scoring || 'exact',
             selectedOption: selected !== undefined ? (q.type === 'sa' ? selected : q.options[selected]) : null,
-            correctKey: q.type === 'sa' ? (q.scoring === 'manual' ? 'Pending Review' : q.correctText) : q.options[q.correct],
+            correctKey: q.type === 'sa' ? (q.scoring === 'manual' ? 'Pending Review' : (q.correctText || null)) : (q.options[q.correct] || null),
             isCorrect: isCorrect,
             status: status
         };
@@ -419,4 +420,58 @@ async function executeSubmit() {
             window.location.href = 'result.html';
         }, 3000);
     }
+}
+
+// ==================== PROTECTION ====================
+
+function applyProtection() {
+    // Disable right-click
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+    });
+
+    // Disable text selection via JS as a backup
+    document.addEventListener('selectstart', (e) => {
+        e.preventDefault();
+        return false;
+    });
+
+    // Disable copy, cut, paste
+    document.addEventListener('copy', (e) => {
+        e.preventDefault();
+        return false;
+    });
+    document.addEventListener('cut', (e) => {
+        e.preventDefault();
+        return false;
+    });
+    document.addEventListener('paste', (e) => {
+        e.preventDefault();
+        return false;
+    });
+
+    // Disable keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Disable Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+U, Ctrl+S, Ctrl+P, Ctrl+A
+        const forbiddenKeys = ['c', 'v', 'x', 'u', 's', 'p', 'a'];
+        if (e.ctrlKey && forbiddenKeys.includes(e.key.toLowerCase())) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // Disable F12 and Ctrl+Shift+I (DevTools)
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    });
+
+    // Disable dragging elements
+    document.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+        return false;
+    });
 }
