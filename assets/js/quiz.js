@@ -80,7 +80,41 @@ async function quizInit() {
             return;
         }
 
-        // Shuffle questions
+        // Check for saved state
+        const savedState = loadQuizState(quizId);
+        if (savedState) {
+            const result = await Swal.fire({
+                title: 'Resume Quiz?',
+                text: "We found a saved session for this quiz. Would you like to continue where you left off?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Resume',
+                cancelButtonText: 'No, Start Over',
+                allowOutsideClick: false
+            });
+
+            if (result.isConfirmed) {
+                // Restore state
+                myQuizData.questions = savedState.questions;
+                myAnswers = savedState.answers;
+                myFlags = savedState.flags;
+                timeLft = savedState.timeLft;
+                currentQIdx = savedState.currentQIdx;
+                startTime = savedState.startTime || Date.now();
+
+                document.getElementById('quizTitle').textContent = myQuizData.title;
+                document.getElementById('totalQNum').textContent = myQuizData.questions.length;
+
+                startTime = Date.now(); // We refine this later if needed, but for now we reset start reference
+                startT();
+                loadQ(currentQIdx);
+                return;
+            } else {
+                clearQuizState(quizId);
+            }
+        }
+
+        // Fresh Start: Shuffle questions
         for (let i = myQuizData.questions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             const temp = myQuizData.questions[i];
@@ -166,6 +200,9 @@ function startT() {
 
         timeLft--;
 
+        // Save progress every 10 seconds to avoid too many writes but keep time semi-accurate
+        if (timeLft % 10 === 0) saveQuizState();
+
         const mins = Math.floor(timeLft / 60);
         const secs = timeLft % 60;
         display.textContent = `${mins}:${secs < 10 ? '0' + secs : secs}`;
@@ -184,6 +221,7 @@ function loadQ(index) {
     if (index < 0 || index >= myQuizData.questions.length) return;
 
     currentQIdx = index;
+    saveQuizState();
     document.getElementById('currentQNum').textContent = index + 1;
 
     const question = myQuizData.questions[index];
@@ -244,6 +282,7 @@ function loadQ(index) {
 window.toggleFlag = function () {
     const question = myQuizData.questions[currentQIdx];
     myFlags[question.id] = !myFlags[question.id];
+    saveQuizState();
     loadQ(currentQIdx);
 };
 
@@ -253,6 +292,7 @@ window.handleTextAns = function (qId, val) {
     } else {
         myAnswers[qId] = val;
     }
+    saveQuizState();
     renderPal();
 };
 
@@ -262,6 +302,7 @@ window.selAns = function (qId, optionIndex) {
     } else {
         myAnswers[qId] = optionIndex;
     }
+    saveQuizState();
     loadQ(currentQIdx);
 };
 
@@ -399,6 +440,9 @@ async function executeSubmit() {
         // Save to Firestore
         const savedSubmission = await saveSubmission(submissionData);
 
+        // Clear persistence state
+        clearQuizState(myQuizData.id);
+
         // Also save to localStorage for immediate result display
         localStorage.setItem('cbt_last_result', JSON.stringify({
             ...submissionData,
@@ -410,6 +454,9 @@ async function executeSubmit() {
     } catch (error) {
         console.error('Submission technical error:', error);
 
+        // Clear persistence state even if save failed to prevent resume loop
+        clearQuizState(myQuizData.id);
+
         // Fallback: still show result even if save failed
         localStorage.setItem('cbt_last_result', JSON.stringify(submissionData));
 
@@ -420,6 +467,48 @@ async function executeSubmit() {
             window.location.href = 'result.html';
         }, 3000);
     }
+}
+
+// ==================== STATE PERSISTENCE ====================
+
+function saveQuizState() {
+    if (!myQuizData || !currentUserId) return;
+
+    const state = {
+        quizId: myQuizData.id,
+        currentQIdx: currentQIdx,
+        answers: myAnswers,
+        flags: myFlags,
+        timeLft: timeLft,
+        startTime: startTime,
+        questions: myQuizData.questions, // Save shuffled order
+        timestamp: Date.now()
+    };
+
+    localStorage.setItem(`cbt_state_${currentUserId}_${myQuizData.id}`, JSON.stringify(state));
+}
+
+function loadQuizState(quizId) {
+    if (!currentUserId) return null;
+    const key = `cbt_state_${currentUserId}_${quizId}`;
+    const saved = localStorage.getItem(key);
+    if (!saved) return null;
+
+    const state = JSON.parse(saved);
+
+    // Optional: Expire state after 24 hours
+    const oneDay = 24 * 60 * 60 * 1000;
+    if (Date.now() - state.timestamp > oneDay) {
+        localStorage.removeItem(key);
+        return null;
+    }
+
+    return state;
+}
+
+function clearQuizState(quizId) {
+    if (!currentUserId) return;
+    localStorage.removeItem(`cbt_state_${currentUserId}_${quizId}`);
 }
 
 // ==================== PROTECTION ====================
