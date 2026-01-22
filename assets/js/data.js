@@ -947,4 +947,757 @@ let myData = [
             }
         ]
     }
+    {
+    id: 'jamb_eng_001',
+    title: 'JAMB English Language',
+    description: 'Comprehensive JAMB standard English language questions covering comprehension, lexis and structure, and oral forms.',
+    duration: 120,
+    questions: [
+        {
+            id: 1,
+            text: "Choose the option nearest in meaning to the word(s) in italics: The manager's *perspicacity* helped resolve the crisis.",
+            options: ["Confusion", "Insight", "Weakness", "Anger"],
+            correct: 1
+        },
+        {
+            id: 2,
+            text: "Choose the option opposite in meaning to the word in italics: The athlete's performance was *exemplary*.",
+            options: ["Outstanding", "Poor", "Average", "Moderate"],
+            correct: 1
+        },
+        {
+            id: 3,
+            text: "Choose the word that best completes the sentence: The committee _____ its decision after much deliberation.",
+            options: ["has reached", "have reached", "are reaching", "were reaching"],
+            correct: 0
+        },
+        {
+            id: 4,
+            text: "Identify the grammatically correct sentence:",
+            options: [
+                "Neither the students nor the teacher are present.",
+                "Neither the students nor the teacher is present.",
+                "Neither the students nor the teacher were present.",
+                "Neither the students nor the teacher have been present."
+            ],
+            correct: 1
+        },
+        {
+            id: 5,
+            text: "Choose the option nearest in meaning: The politician's speech was full of *platitudes*.",
+            options: ["Lies", "Clichés", "Wisdom", "Jokes"],
+            correct: 1
+        },
+        {
+            id: 6,
+            text: "The phrase 'to let the cat out of the bag' means:",
+            options: ["To free an animal", "To reveal a secret", "To create confusion", "To start a fight"],
+            correct: 1
+        },
+        {
+            id: 7,
+            text: "Choose the correct stress pattern: PHOtograph",
+            options: ["phoTOgraph", "photoGRAPH", "PHOtograph", "phoTOGraph"],
+            correct: 2
+        },
+        {
+            id: 8,
+            text: "Select the option with the correct spelling:",
+            options: ["Occassion", "Occasion", "Ocassion", "Ocasion"],
+            correct: 1
+        },
+        {
+            id: 9,
+            text: "Choose the appropriate conjunction: He studied hard _____ he failed the examination.",
+            options: ["and", "but", "or", "so"],
+            correct: 1
+        },
+        {
+            id: 10,
+            text: "Identify the sentence with correct punctuation:",
+            options: [
+                "The teacher said, 'study hard'.",
+                "The teacher said 'study hard.'",
+                "The teacher said, 'Study hard.'",
+                "The teacher said 'Study hard'."
+            ],
+            correct: 2
+        },
+        {
+            id: 11,
+            text: "Choose the option opposite in meaning: The witness gave a *coherent* account of the incident.",
+            options: ["Clear", "Confused", "Detailed", "Brief"],
+            correct: 1
+        },
+        {
+            id: 12,
+            text: "Select the word that is wrongly used: The principle of the school addressed the students.",
+            options: ["principle", "school", "addressed", "students"],
+            correct: 0
+        },
+        {
+            id: 13,
+            text: "Choose the correct pronoun: Between you and _____, this matter should remain confidential.",
+            options: ["I", "me", "myself", "mine"],
+            correct: 1
+        },
+        {
+            id: 14,
+            text: "The passive form of 'They are building a new bridge' is:",
+            options: [
+                "A new bridge is being built by them.",
+                "A new bridge was being built by them.",
+                "A new bridge is built by them.",
+                "A new bridge has been built by them."
+            ],
+            correct: 0
+        },
+        {
+            id: 15,
+            text: "Choose the option nearest in meaning: The judge's verdict was *irrevocable*.",
+            options: ["Questionable", "Final", "Temporary", "Debatable"],
+            correct: 1
+        },
+        {
+            id: 16,
+            text: "Identify the figure of speech in: 'The classroom was a zoo.'",
+            options: ["Simile", "Metaphor", "Personification", "Hyperbole"],
+            correct: 1
+        },
+        {
+            id: 17,
+            text: "Choose the correct preposition: She has been waiting _____ you for two hours.",
+            options: ["on", "for", "at", "with"],
+            correct: 1
+        },
+        {
+            id: 18,
+            text: "Select the sentence with correct subject-verb agreement:",
+            options: [
+                "The group of students were present.",
+                "The group of students was present.",
+                "The group of students are present.",
+                "The group of students have been present."
+            ],
+            correct: 1
+        },
+        {
+            id: 19,
+            text: "The word 'bank' in 'river bank' and 'bank account' demonstrates:",
+            options: ["Homonyms", "Synonyms", "Antonyms", "Homophones"],
+            correct: 0
+        },
+        {
+            id: 20,
+            text: "Choose the option that best completes the sentence: He would have passed the exam if he _____ harder.",
+            options: ["studies", "studied", "had studied", "has studied"],
+            correct: 2
+        },
+        {
+            id: 21,
+            text: "Choose the correct article: He is _____ honest man.",
+            options: ["a", "an", "the", "no article"],
+            correct: 1
+        },
+        {
+            id: 22,
+            text: "Identify the type of clause: 'When the rain stopped, we went outside.'",
+            options: ["Noun clause", "Adverbial clause", "Adjective clause", "Independent clause"],
+            correct: 1
+        },
+        {
+            id: 23,
+            text: "Choose the option opposite in meaning: His response was *ambiguous*.",
+            options: ["Unclear", "Clear", "Lengthy", "Brief"],
+            correct: 1
+        },
+        {
+            id: 24,
+            text: "Select the correctly punctuated sentence:",
+            options: [
+                "My sisters name is Mary.",
+                "My sister's name is Mary.",
+                "My sisters' name is Mary.",
+                "My sisters name's is Mary."
+            ],
+            correct: 1
+        },
+        {
+            id: 25,
+            text: "The plural form of 'crisis' is:",
+            options: ["Crisises", "Crisis", "Crises", "Crisiss"],
+            correct: 2
+        },
+        {
+            id: 26,
+            text: "Choose the option nearest in meaning: The plan was *feasible*.",
+            options: ["Impossible", "Practical", "Expensive", "Difficult"],
+            correct: 1
+        },
+        {
+            id: 27,
+            text: "Identify the part of speech of the underlined word: She sings *beautifully*.",
+            options: ["Adjective", "Adverb", "Verb", "Noun"],
+            correct: 1
+        },
+        {
+            id: 28,
+            text: "Choose the correct form: Neither of the boys _____ present.",
+            options: ["are", "were", "is", "have been"],
+            correct: 2
+        },
+        {
+            id: 29,
+            text: "The expression 'to beat about the bush' means:",
+            options: ["To avoid the main point", "To hit something", "To garden", "To be violent"],
+            correct: 0
+        },
+        {
+            id: 30,
+            text: "Select the sentence with correct tense usage:",
+            options: [
+                "By next year, I will have been working here for ten years.",
+                "By next year, I will work here for ten years.",
+                "By next year, I am working here for ten years.",
+                "By next year, I worked here for ten years."
+            ],
+            correct: 0
+        },
+        {
+            id: 31,
+            text: "Choose the option that best completes the sentence: _____ of the students passed the examination.",
+            options: ["Every", "Each", "All", "Much"],
+            correct: 2
+        },
+        {
+            id: 32,
+            text: "Identify the literary device: 'The wind whispered through the trees.'",
+            options: ["Simile", "Metaphor", "Personification", "Alliteration"],
+            correct: 2
+        },
+        {
+            id: 33,
+            text: "Choose the correct comparative form: She is _____ than her sister.",
+            options: ["more tall", "taller", "tallest", "most tall"],
+            correct: 1
+        },
+        {
+            id: 34,
+            text: "Select the option with correct word order:",
+            options: [
+                "He always is late.",
+                "He is always late.",
+                "Always he is late.",
+                "He is late always."
+            ],
+            correct: 1
+        },
+        {
+            id: 35,
+            text: "Choose the option opposite in meaning: The evidence was *substantial*.",
+            options: ["Heavy", "Insignificant", "Important", "Relevant"],
+            correct: 1
+        },
+        {
+            id: 36,
+            text: "The correct reported speech for 'She said, \"I am tired\"' is:",
+            options: [
+                "She said that she is tired.",
+                "She said that she was tired.",
+                "She says that she is tired.",
+                "She said she is tired."
+            ],
+            correct: 1
+        },
+        {
+            id: 37,
+            text: "Choose the word that is wrongly spelled:",
+            options: ["Maintenance", "Occurrence", "Arguement", "Accommodate"],
+            correct: 2
+        },
+        {
+            id: 38,
+            text: "Select the correct form: The news _____ surprising.",
+            options: ["are", "were", "is", "have been"],
+            correct: 2
+        },
+        {
+            id: 39,
+            text: "Choose the option nearest in meaning: The speaker was *eloquent*.",
+            options: ["Silent", "Articulate", "Boring", "Confused"],
+            correct: 1
+        },
+        {
+            id: 40,
+            text: "Identify the correct use of the apostrophe:",
+            options: [
+                "The childrens' toys",
+                "The children's toys",
+                "The childrens toys",
+                "The children toys'"
+            ],
+            correct: 1
+        },
+        {
+            id: 41,
+            text: "The phrase 'a blessing in disguise' means:",
+            options: [
+                "A hidden curse",
+                "Something good that seemed bad at first",
+                "A religious ceremony",
+                "A costume party"
+            ],
+            correct: 1
+        },
+        {
+            id: 42,
+            text: "Choose the correct preposition: He succeeded _____ passing the examination.",
+            options: ["in", "at", "on", "with"],
+            correct: 0
+        },
+        {
+            id: 43,
+            text: "Select the sentence with correct concord:",
+            options: [
+                "The pair of scissors are on the table.",
+                "The pair of scissors is on the table.",
+                "The pair of scissors were on the table.",
+                "The pair of scissors have been on the table."
+            ],
+            correct: 1
+        },
+        {
+            id: 44,
+            text: "Choose the option opposite in meaning: Her attitude was *pessimistic*.",
+            options: ["Negative", "Optimistic", "Realistic", "Sad"],
+            correct: 1
+        },
+        {
+            id: 45,
+            text: "The correct tag question for 'She can swim' is:",
+            options: ["can she?", "can't she?", "isn't she?", "doesn't she?"],
+            correct: 1
+        },
+        {
+            id: 46,
+            text: "Choose the option nearest in meaning: The situation was *precarious*.",
+            options: ["Safe", "Dangerous", "Stable", "Normal"],
+            correct: 1
+        },
+        {
+            id: 47,
+            text: "Identify the sentence with correct punctuation:",
+            options: [
+                "What a beautiful day it is",
+                "What a beautiful day it is.",
+                "What a beautiful day it is!",
+                "What a beautiful day it is?"
+            ],
+            correct: 2
+        },
+        {
+            id: 48,
+            text: "Choose the correct form: If I _____ you, I would apologize.",
+            options: ["am", "was", "were", "are"],
+            correct: 2
+        },
+        {
+            id: 49,
+            text: "Select the word with the correct prefix: un + grateful =",
+            options: ["Ungrateful", "Ungreaful", "Ungratefull", "Ungratful"],
+            correct: 0
+        },
+        {
+            id: 50,
+            text: "The phrase 'to call a spade a spade' means:",
+            options: [
+                "To garden",
+                "To speak plainly",
+                "To use tools",
+                "To play cards"
+            ],
+            correct: 1
+        },
+        {
+            id: 51,
+            text: "Choose the correct form: She _____ to the market every Saturday.",
+            options: ["go", "goes", "going", "gone"],
+            correct: 1
+        },
+        {
+            id: 52,
+            text: "Identify the sentence with correct subject-verb agreement:",
+            options: [
+                "Each of the girls have her own book.",
+                "Each of the girls has her own book.",
+                "Each of the girls have their own book.",
+                "Each of the girls are having her own book."
+            ],
+            correct: 1
+        },
+        {
+            id: 53,
+            text: "Choose the option opposite in meaning: The water was *turbid*.",
+            options: ["Dirty", "Clear", "Cold", "Hot"],
+            correct: 1
+        },
+        {
+            id: 54,
+            text: "Select the correctly formed word:",
+            options: ["Disappear", "Disapear", "Dissappear", "Dissapear"],
+            correct: 0
+        },
+        {
+            id: 55,
+            text: "Choose the option nearest in meaning: The argument was *futile*.",
+            options: ["Useful", "Pointless", "Lengthy", "Violent"],
+            correct: 1
+        },
+        {
+            id: 56,
+            text: "The correct question tag for 'Let's go' is:",
+            options: ["shall we?", "will we?", "do we?", "can we?"],
+            correct: 0
+        },
+        {
+            id: 57,
+            text: "Choose the correct form: He has _____ finished his work.",
+            options: ["already", "yet", "still", "always"],
+            correct: 0
+        },
+        {
+            id: 58,
+            text: "Identify the type of sentence: 'Stop talking!'",
+            options: ["Declarative", "Interrogative", "Imperative", "Exclamatory"],
+            correct: 2
+        },
+        {
+            id: 59,
+            text: "Choose the option that best completes the sentence: She speaks _____ than her brother.",
+            options: ["more fluent", "more fluently", "most fluently", "fluently"],
+            correct: 1
+        },
+        {
+            id: 60,
+            text: "Select the sentence with correct use of articles:",
+            options: [
+                "She is a European.",
+                "She is an European.",
+                "She is the European.",
+                "She is European."
+            ],
+            correct: 0
+        },
+        {
+            id: 61,
+            text: "Choose the option opposite in meaning: His reply was *terse*.",
+            options: ["Brief", "Lengthy", "Polite", "Rude"],
+            correct: 1
+        },
+        {
+            id: 62,
+            text: "The expression 'to hit the nail on the head' means:",
+            options: [
+                "To use a hammer",
+                "To be exactly right",
+                "To cause pain",
+                "To build something"
+            ],
+            correct: 1
+        },
+        {
+            id: 63,
+            text: "Choose the correct form: The meeting _____ at 9 am tomorrow.",
+            options: ["start", "starts", "started", "starting"],
+            correct: 1
+        },
+        {
+            id: 64,
+            text: "Select the word that is wrongly used: The effects of the medicine were immediate.",
+            options: ["effects", "medicine", "were", "immediate"],
+            correct: 0
+        },
+        {
+            id: 65,
+            text: "Choose the option nearest in meaning: The proposal was *rejected* unanimously.",
+            options: ["Accepted", "Refused", "Amended", "Postponed"],
+            correct: 1
+        },
+        {
+            id: 66,
+            text: "Identify the correct sentence:",
+            options: [
+                "She don't like coffee.",
+                "She doesn't likes coffee.",
+                "She doesn't like coffee.",
+                "She don't likes coffee."
+            ],
+            correct: 2
+        },
+        {
+            id: 67,
+            text: "Choose the correct preposition: She is good _____ mathematics.",
+            options: ["in", "at", "on", "with"],
+            correct: 1
+        },
+        {
+            id: 68,
+            text: "The phrase 'to burn the midnight oil' means:",
+            options: [
+                "To waste fuel",
+                "To study late at night",
+                "To start a fire",
+                "To cook at night"
+            ],
+            correct: 1
+        },
+        {
+            id: 69,
+            text: "Choose the option opposite in meaning: The accused was *acquitted*.",
+            options: ["Freed", "Convicted", "Arrested", "Questioned"],
+            correct: 1
+        },
+        {
+            id: 70,
+            text: "Select the sentence with correct tense consistency:",
+            options: [
+                "She went to the market and buys some fruits.",
+                "She goes to the market and bought some fruits.",
+                "She went to the market and bought some fruits.",
+                "She goes to the market and buys some fruits."
+            ],
+            correct: 2
+        },
+        {
+            id: 71,
+            text: "Choose the correctly spelled word:",
+            options: ["Enviroment", "Environment", "Enviornment", "Environement"],
+            correct: 1
+        },
+        {
+            id: 72,
+            text: "The word 'minute' (small) and 'minute' (60 seconds) are examples of:",
+            options: ["Homonyms", "Synonyms", "Antonyms", "Homophones"],
+            correct: 0
+        },
+        {
+            id: 73,
+            text: "Choose the option nearest in meaning: The disease is *contagious*.",
+            options: ["Curable", "Infectious", "Dangerous", "Rare"],
+            correct: 1
+        },
+        {
+            id: 74,
+            text: "Select the correct form: Neither the teacher nor the students _____ ready.",
+            options: ["is", "are", "was", "been"],
+            correct: 1
+        },
+        {
+            id: 75,
+            text: "Choose the correct conjunction: Work hard _____ you will fail.",
+            options: ["and", "but", "or", "so"],
+            correct: 2
+        },
+        {
+            id: 76,
+            text: "Identify the figure of speech: 'He's as strong as an ox.'",
+            options: ["Metaphor", "Simile", "Personification", "Hyperbole"],
+            correct: 1
+        },
+        {
+            id: 77,
+            text: "Choose the option opposite in meaning: The climate was *temperate*.",
+            options: ["Mild", "Extreme", "Cold", "Warm"],
+            correct: 1
+        },
+        {
+            id: 78,
+            text: "The correct passive form of 'Someone is following us' is:",
+            options: [
+                "We are being followed by someone.",
+                "We are followed by someone.",
+                "We were being followed by someone.",
+                "We have been followed by someone."
+            ],
+            correct: 0
+        },
+        {
+            id: 79,
+            text: "Choose the option that best completes the sentence: _____ students passed the examination.",
+            options: ["A few", "Few", "Little", "A little"],
+            correct: 0
+        },
+        {
+            id: 80,
+            text: "Select the sentence with correct punctuation:",
+            options: [
+                "Its a beautiful day.",
+                "It's a beautiful day.",
+                "Its' a beautiful day.",
+                "Its a beautiful day"
+            ],
+            correct: 1
+        },
+        {
+            id: 81,
+            text: "Choose the option nearest in meaning: The witness's testimony was *credible*.",
+            options: ["Unbelievable", "Believable", "False", "Confused"],
+            correct: 1
+        },
+        {
+            id: 82,
+            text: "The phrase 'to turn over a new leaf' means:",
+            options: [
+                "To read a book",
+                "To start afresh",
+                "To garden",
+                "To change pages"
+            ],
+            correct: 1
+        },
+        {
+            id: 83,
+            text: "Choose the correct form: By the time you arrive, I _____ finished cooking.",
+            options: ["will", "will have", "would", "would have"],
+            correct: 1
+        },
+        {
+            id: 84,
+            text: "Identify the correctly used word:",
+            options: [
+                "The principal of honesty",
+                "The principle of honesty",
+                "The principale of honesty",
+                "The princepal of honesty"
+            ],
+            correct: 1
+        },
+        {
+            id: 85,
+            text: "Choose the option opposite in meaning: The speaker was *verbose*.",
+            options: ["Wordy", "Concise", "Loud", "Quiet"],
+            correct: 1
+        },
+        {
+            id: 86,
+            text: "Select the sentence with correct subject-verb agreement:",
+            options: [
+                "The team are playing well.",
+                "The team is playing well.",
+                "The team were playing well.",
+                "The team have been playing well."
+            ],
+            correct: 1
+        },
+        {
+            id: 87,
+            text: "Choose the correct preposition: She is married _____ a doctor.",
+            options: ["with", "to", "by", "from"],
+            correct: 1
+        },
+        {
+            id: 88,
+            text: "The expression 'to be in hot water' means:",
+            options: [
+                "To be bathing",
+                "To be in trouble",
+                "To be cooking",
+                "To be swimming"
+            ],
+            correct: 1
+        },
+        {
+            id: 89,
+            text: "Choose the option nearest in meaning: The king's decree was *immutable*.",
+            options: ["Changeable", "Unchangeable", "Reasonable", "Unreasonable"],
+            correct: 1
+        },
+        {
+            id: 90,
+            text: "Select the correctly punctuated sentence:",
+            options: [
+                "She asked 'what is your name?'",
+                "She asked, 'What is your name?'",
+                "She asked 'What is your name?'",
+                "She asked, 'what is your name?'"
+            ],
+            correct: 1
+        },
+        {
+            id: 91,
+            text: "Choose the correct form: I wish I _____ taller.",
+            options: ["am", "was", "were", "be"],
+            correct: 2
+        },
+        {
+            id: 92,
+            text: "Identify the sentence with correct word order:",
+            options: [
+                "Rarely I have seen such beauty.",
+                "Rarely have I seen such beauty.",
+                "Rarely seen I have such beauty.",
+                "Rarely such beauty I have seen."
+            ],
+            correct: 1
+        },
+        {
+            id: 93,
+            text: "Choose the option opposite in meaning: The defendant's alibi was *plausible*.",
+            options: ["Believable", "Unbelievable", "True", "False"],
+            correct: 1
+        },
+        {
+            id: 94,
+            text: "The correct plural form of 'phenomenon' is:",
+            options: ["Phenomenons", "Phenomena", "Phenomenas", "Phenomenes"],
+            correct: 1
+        },
+        {
+            id: 95,
+            text: "Choose the option that best completes the sentence: He is _____ honest man.",
+            options: ["a", "an", "the", "no article"],
+            correct: 1
+        },
+        {
+            id: 96,
+            text: "Select the sentence with correct use of modals:",
+            options: [
+                "You must to come early.",
+                "You must come early.",
+                "You must coming early.",
+                "You must came early."
+            ],
+            correct: 1
+        },
+        {
+            id: 97,
+            text: "Choose the option nearest in meaning: The statement was *explicit*.",
+            options: ["Vague", "Clear", "Hidden", "Confusing"],
+            correct: 1
+        },
+        {
+            id: 98,
+            text: "The phrase 'to face the music' means:",
+            options: [
+                "To attend a concert",
+                "To accept consequences",
+                "To play an instrument",
+                "To dance"
+            ],
+            correct: 1
+        },
+        {
+            id: 99,
+            text: "Choose the correct form: She _____ in Lagos since 2015.",
+            options: ["lives", "lived", "has lived", "have lived"],
+            correct: 2
+        },
+        {
+            id: 100,
+            text: "Select the option with correct spelling:",
+            options: ["Embarass", "Embarrass", "Embarras", "Embaress"],
+            correct: 1
+        }
+    ]
+                    }
 ];
