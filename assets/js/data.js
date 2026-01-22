@@ -946,7 +946,7 @@ let myData = [
                 correct: 2
             }
         ]
-    }
+    },
     {
     id: 'jamb_eng_001',
     title: 'JAMB English Language',
@@ -1701,3 +1701,4 @@ let myData = [
     ]
                     }
 ];
+
