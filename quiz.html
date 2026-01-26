@@ -26,13 +26,13 @@
 </head>
 
 <body style="padding-top: 60px;" class="no-select">
-    <div class="timer-badge" id="timerDisplay">00:00</div>
+    <div class="timer-badge" id="timerDisplay" aria-live="polite" aria-label="Quiz timer">00:00</div>
     <nav class="main-nav" style="position: fixed; top: 0; width: 100%; z-index: 90; height: 60px;">
         <div class="container nav-content">
             <div style="font-weight: 600;" id="quizTitle">Loading...</div>
             <div style="display: flex; gap: 1rem; align-items: center;">
-                <button id="calcToggleBtn" class="theme-toggle">🧮</button>
-                <button id="themeToggleBtn" class="theme-toggle">🌙</button>
+                <button id="calcToggleBtn" class="theme-toggle" aria-label="Toggle calculator">🧮</button>
+                <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
                 <div style="font-size: 0.9rem;">Q <span id="currentQNum">1</span> / <span id="totalQNum">0</span></div>
             </div>
         </div>
@@ -44,17 +44,17 @@
         <aside class="question-palette">
             <h3>Palette</h3>
             <div id="paletteGrid" class="palette-grid"></div>
-            <button onclick="submitQ()" class="btn"
+            <button onclick="submitQ()" class="btn" aria-label="Submit quiz"
                 style="width: 100%; margin-top: 2rem; border: 2px solid red; color: red;">Submit</button>
         </aside>
         <section class="question-area">
             <h2 id="questionText" style="margin-bottom: 1.5rem;">Loading...</h2>
             <div id="optionsContainer" class="option-group"></div>
             <div class="nav-controls">
-                <button onclick="prevQ()" id="prevBtn" class="btn">Prev</button>
-                <button onclick="toggleFlag()" id="flagBtn" class="btn"
+                <button onclick="prevQ()" id="prevBtn" class="btn" aria-label="Previous question">Prev</button>
+                <button onclick="toggleFlag()" id="flagBtn" class="btn" aria-label="Flag question for review"
                     style="background: #FEF3C7; color: #92400E;">Flag</button>
-                <button onclick="nextQ()" id="nextBtn" class="btn btn-primary">Next</button>
+                <button onclick="nextQ()" id="nextBtn" class="btn btn-primary" aria-label="Next question">Next</button>
             </div>
         </section>
     </main>

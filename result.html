@@ -33,8 +33,9 @@
                 <span>🎓</span> AllianzQuiz Results
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <button id="themeToggleBtn" class="theme-toggle">🌙</button>
-                <a href="dashboard.html" class="btn" style="color: grey; font-size: 0.9rem;">Back</a>
+                <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+                <a href="dashboard.html" class="btn" aria-label="Go back to dashboard"
+                    style="color: grey; font-size: 0.9rem;">Back</a>
             </div>
         </div>
     </nav>
@@ -44,8 +45,8 @@
             <h1 id="resultTitle" style="margin-bottom: 0.5rem;">Completed!</h1>
             <p id="resultSummary" style="color: grey; font-size: 1.1rem; margin-bottom: 2rem;">Loading...</p>
             <div style="display: flex; gap: 1rem; justify-content: center;">
-                <a href="dashboard.html" class="btn btn-secondary">Home</a>
-                <button onclick="window.print()" class="btn btn-primary">Print</button>
+                <a href="dashboard.html" class="btn btn-secondary" aria-label="Go to home">Home</a>
+                <button onclick="window.print()" class="btn btn-primary" aria-label="Print results">Print</button>
             </div>
         </div>
         <h2 style="margin-bottom: 1.5rem;">Review</h2>

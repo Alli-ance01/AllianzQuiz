@@ -30,10 +30,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "AllianzQuiz",
+        "url": "https://allianz-quiz.web.app",
+        "description": "A professional online CBT platform for mastering your Allianz knowledge.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "AllianzQuiz",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://allianz-quiz.web.app/assets/img/logo.png"
+            }
+        }
+    }
+    </script>
 </head>
 
 <body class="login-page">
-    <button id="themeToggleBtn" class="theme-toggle"
+    <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark mode"
         style="position: fixed; top: 1rem; right: 1rem; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);">🌙</button>
 
     <div class="card login-card">
@@ -66,7 +93,7 @@
                 <div style="position: relative;">
                     <input type="password" id="password" placeholder="••••••••" required minlength="6"
                         style="padding-right: 3rem; width: 100%;">
-                    <button type="button" id="togglePassword"
+                    <button type="button" id="togglePassword" aria-label="Toggle password visibility"
                         style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 0.25rem;">👁️</button>
                 </div>
             </div>

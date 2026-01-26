@@ -1,0 +1,5 @@
+# AllianzQuiz Robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://allianz-quiz.web.app/sitemap.xml
