@@ -1,7 +1,7 @@
 // Owner Dashboard - Secret Super Admin Panel
 // This file handles authentication and data management for the owner dashboard
 
-import { db } from './firebase-config.js';
+import { db, auth } from './firebase-config.js';
 import {
     collection,
     doc,
@@ -11,23 +11,25 @@ import {
     query,
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ==================== SECRET ACCESS KEY ====================
-// IMPORTANT: Change this to your own secret key!
-const OWNER_ACCESS_KEY = 'AllianzOwner2026!';
+// ==================== OWNER CREDENTIALS ====================
+// IMPORTANT: Change these to your own credentials!
+const OWNER_EMAIL = 'owner@allianzquiz.com';  // Your Firebase Auth email
+const OWNER_PASSWORD = 'AllianzOwner2026!';   // Your Firebase Auth password
 
 // ==================== SESSION MANAGEMENT ====================
 
 function isAuthenticated() {
-    return sessionStorage.getItem('owner_auth') === 'true';
+    return auth.currentUser !== null;
 }
 
-function authenticate() {
-    sessionStorage.setItem('owner_auth', 'true');
-}
-
-window.ownerLogout = function () {
-    sessionStorage.removeItem('owner_auth');
+window.ownerLogout = async function () {
+    await signOut(auth);
     location.reload();
 };
 
@@ -276,25 +278,30 @@ function init() {
     const themeBtn = document.getElementById('themeToggleBtn');
     if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
 
-    if (isAuthenticated()) {
-        showDashboard();
-    } else {
-        showLogin();
-    }
+    // Listen for auth state changes
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            showDashboard();
+        } else {
+            showLogin();
+        }
+    });
 }
 
 function showLogin() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('dashboardScreen').style.display = 'none';
 
-    document.getElementById('ownerLoginForm').addEventListener('submit', function (e) {
+    document.getElementById('ownerLoginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         const key = document.getElementById('accessKey').value;
 
-        if (key === OWNER_ACCESS_KEY) {
-            authenticate();
-            showDashboard();
-        } else {
+        // The access key IS the password for your owner account
+        try {
+            await signInWithEmailAndPassword(auth, OWNER_EMAIL, key);
+            // Auth state change will trigger showDashboard
+        } catch (error) {
+            console.error('Login error:', error);
             Swal.fire('Access Denied', 'Invalid access key.', 'error');
         }
     });
