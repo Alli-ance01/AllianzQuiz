@@ -187,6 +187,53 @@ function renderSubmissions(submissions = allSubmissions) {
     }).join('');
 }
 
+// ==================== PERMISSIONS FIX ====================
+
+window.fixMyPermissions = async function () {
+    const user = auth.currentUser;
+    if (!user) {
+        Swal.fire('Error', 'You must be logged in to fix permissions.', 'error');
+        return;
+    }
+
+    try {
+        Swal.fire({
+            title: 'Fixing Permissions...',
+            text: 'Setting your role to owner in Firestore.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+            role: 'owner',
+            displayName: user.displayName || 'Site Owner',
+            email: user.email
+        }).catch(async (err) => {
+            // If document doesn't exist, set it
+            if (err.code === 'not-found' || err.message.includes('No document to update')) {
+                const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                await setDoc(userRef, {
+                    role: 'owner',
+                    displayName: user.displayName || 'Site Owner',
+                    email: user.email,
+                    createdAt: new Date()
+                });
+            } else {
+                throw err;
+            }
+        });
+
+        await refreshData();
+        Swal.fire('Success!', 'Your role has been set to owner. Permissions updated.', 'success');
+    } catch (error) {
+        console.error('Error fixing permissions:', error);
+        Swal.fire('Failed', 'Could not update permissions: ' + error.message, 'error');
+    }
+};
+
 // ==================== ACTIONS ====================
 
 window.disableUser = async function (userId) {
@@ -287,7 +334,13 @@ window.switchTab = function (tabName) {
 // ==================== REFRESH DATA ====================
 
 async function refreshData() {
+    // Show loading state in tables
+    document.getElementById('usersBody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Refreshing...</td></tr>';
+    document.getElementById('quizzesBody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Refreshing...</td></tr>';
+    document.getElementById('submissionsBody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Refreshing...</td></tr>';
+
     await Promise.all([fetchAllUsers(), fetchAllQuizzes(), fetchAllSubmissions()]);
+
     renderStats();
     renderUsers();
     renderQuizzes();
