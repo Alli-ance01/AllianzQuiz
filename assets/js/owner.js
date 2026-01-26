@@ -65,21 +65,45 @@ let allSubmissions = [];
 // ==================== DATA FETCHING ====================
 
 async function fetchAllUsers() {
-    const snapshot = await getDocs(collection(db, 'users'));
-    allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return allUsers;
+    try {
+        console.log('Fetching users...');
+        const snapshot = await getDocs(collection(db, 'users'));
+        allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Users fetched:', allUsers.length);
+        return allUsers;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        allUsers = [];
+        return [];
+    }
 }
 
 async function fetchAllQuizzes() {
-    const snapshot = await getDocs(collection(db, 'quizzes'));
-    allQuizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return allQuizzes;
+    try {
+        console.log('Fetching quizzes...');
+        const snapshot = await getDocs(collection(db, 'quizzes'));
+        allQuizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Quizzes fetched:', allQuizzes.length);
+        return allQuizzes;
+    } catch (error) {
+        console.error('Error fetching quizzes:', error);
+        allQuizzes = [];
+        return [];
+    }
 }
 
 async function fetchAllSubmissions() {
-    const snapshot = await getDocs(collection(db, 'attempts'));
-    allSubmissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return allSubmissions;
+    try {
+        console.log('Fetching submissions...');
+        const snapshot = await getDocs(collection(db, 'attempts'));
+        allSubmissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Submissions fetched:', allSubmissions.length);
+        return allSubmissions;
+    } catch (error) {
+        console.error('Error fetching submissions:', error);
+        allSubmissions = [];
+        return [];
+    }
 }
 
 // ==================== RENDERING ====================
