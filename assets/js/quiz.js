@@ -28,6 +28,14 @@ onAuthChange(async (user) => {
     currentUserId = user.uid;
     currentUserProfile = await getUserProfile(user.uid);
 
+    // Global block for disabled users
+    if (currentUserProfile && currentUserProfile.disabled) {
+        const { signOutUser } = await import('./firebase-auth.js');
+        await signOutUser();
+        window.location.href = 'index.html';
+        return;
+    }
+
     // Initialize quiz
     await quizInit();
     applyProtection();

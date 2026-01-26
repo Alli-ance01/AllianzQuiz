@@ -258,16 +258,26 @@ window.disableUser = async function (userId) {
     });
 
     if (confirmed.isConfirmed) {
-        await updateDoc(doc(db, 'users', userId), { disabled: true });
-        await refreshData();
-        Swal.fire('Disabled!', 'User has been disabled.', 'success');
+        try {
+            await updateDoc(doc(db, 'users', userId), { disabled: true });
+            await refreshData();
+            Swal.fire('Disabled!', 'User has been disabled.', 'success');
+        } catch (error) {
+            console.error('Error disabling user:', error);
+            Swal.fire('Failed', 'Could not disable user: ' + error.message, 'error');
+        }
     }
-};
+}
 
 window.enableUser = async function (userId) {
-    await updateDoc(doc(db, 'users', userId), { disabled: false });
-    await refreshData();
-    Swal.fire('Enabled!', 'User has been enabled.', 'success');
+    try {
+        await updateDoc(doc(db, 'users', userId), { disabled: false });
+        await refreshData();
+        Swal.fire('Enabled!', 'User has been enabled.', 'success');
+    } catch (error) {
+        console.error('Error enabling user:', error);
+        Swal.fire('Failed', 'Could not enable user: ' + error.message, 'error');
+    }
 };
 
 window.deleteQuiz = async function (quizId) {

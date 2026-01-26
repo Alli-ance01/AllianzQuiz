@@ -56,6 +56,15 @@ onAuthChange(async (user) => {
 
     // Verify this is an admin
     const profile = await getUserProfile(user.uid);
+
+    // Global block for disabled users
+    if (profile && profile.disabled) {
+        const { signOutUser } = await import('./firebase-auth.js');
+        await signOutUser();
+        window.location.href = 'index.html';
+        return;
+    }
+
     if (!profile || (profile.role !== 'admin' && profile.role !== 'teacher')) {
         // Not an admin, redirect to student dashboard
         window.location.href = 'dashboard.html';
