@@ -227,6 +227,13 @@ function init() {
         onAuthChange(async (user) => {
             if (user) {
                 const profile = await getUserProfile(user.uid);
+
+                // Check if user is disabled
+                if (profile && profile.disabled) {
+                    await signOutUser();
+                    return; // Stays on login page
+                }
+
                 if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
                     window.location.href = 'admin.html';
                 } else {

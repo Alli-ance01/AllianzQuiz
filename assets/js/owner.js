@@ -96,7 +96,13 @@ async function fetchAllSubmissions() {
     try {
         console.log('Fetching submissions...');
         const snapshot = await getDocs(collection(db, 'attempts'));
-        allSubmissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        allSubmissions = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => {
+                const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp || 0);
+                const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp || 0);
+                return dateB - dateA;
+            });
         console.log('Submissions fetched:', allSubmissions.length);
         return allSubmissions;
     } catch (error) {
@@ -149,17 +155,23 @@ function renderQuizzes(quizzes = allQuizzes) {
         return;
     }
 
-    tbody.innerHTML = quizzes.map(quiz => `
-        <tr>
-            <td><strong>${quiz.title || 'Untitled'}</strong></td>
-            <td>${quiz.creatorName || 'Unknown'}</td>
-            <td><span class="badge ${quiz.visibility === 'private' ? 'badge-warning' : 'badge-success'}">${quiz.visibility || 'public'}</span></td>
-            <td>${quiz.questions?.length || 0}</td>
-            <td>
-                <button class="action-btn action-btn-danger" onclick="deleteQuiz('${quiz.id}')">Delete</button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = quizzes.map(quiz => {
+        // Find creator name from user list
+        const creator = allUsers.find(u => u.id === quiz.createdBy);
+        const creatorName = creator ? creator.displayName : (quiz.creatorName || 'Unknown');
+
+        return `
+            <tr>
+                <td><strong>${quiz.title || 'Untitled'}</strong></td>
+                <td>${creatorName}</td>
+                <td><span class="badge ${quiz.visibility === 'private' ? 'badge-warning' : 'badge-success'}">${quiz.visibility || 'public'}</span></td>
+                <td>${quiz.questions?.length || 0}</td>
+                <td>
+                    <button class="action-btn action-btn-danger" onclick="deleteQuiz('${quiz.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderSubmissions(submissions = allSubmissions) {
