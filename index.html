@@ -5,6 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AllianzQuiz - Online CBT Platform</title>
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <link rel="apple-touch-icon" href="assets/img/logo.png">
+
+    <!-- SEO / Open Graph / Twitter -->
+    <meta name="description"
+        content="AllianzQuiz - A professional online CBT platform for mastering your Allianz knowledge.">
+
+    <meta property="og:title" content="AllianzQuiz - Online CBT Platform">
+    <meta property="og:description" content="Master your Allianz knowledge with our professional online CBT platform.">
+    <meta property="og:image" content="assets/img/og-image.png">
+    <meta property="og:url" content="https://allianz-quiz.web.app">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AllianzQuiz - Online CBT Platform">
+    <meta name="twitter:description" content="Master your Allianz knowledge with our professional online CBT platform.">
+    <meta name="twitter:image" content="assets/img/og-image.png">
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +43,6 @@
             <p style="color: var(--text-muted);" id="formSubtitle">Sign in to continue</p>
         </div>
 
-        <!-- Auth Mode Toggle -->
         <div class="auth-toggle"
             style="display: flex; margin-bottom: 1.5rem; background: var(--bg-color); border-radius: 12px; padding: 0.25rem;">
             <button type="button" id="signInTab" class="auth-tab active" onclick="switchAuthMode('signin')">Sign
@@ -34,7 +51,6 @@
         </div>
 
         <form id="loginForm">
-            <!-- Full Name (only for signup) -->
             <div class="input-group" id="nameGroup" style="display: none;">
                 <label for="username">Full Name</label>
                 <input type="text" id="username" placeholder="e.g. John Doe">
@@ -55,7 +71,6 @@
                 </div>
             </div>
 
-            <!-- Role Selector (only for signup) -->
             <div class="input-group" id="roleGroup" style="display: none;">
                 <label>I am a...</label>
                 <div class="role-selector" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">

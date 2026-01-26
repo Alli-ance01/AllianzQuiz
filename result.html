@@ -5,6 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Results - AllianzQuiz</title>
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <link rel="apple-touch-icon" href="assets/img/logo.png">
+
+    <!-- SEO / Open Graph / Twitter -->
+    <meta property="og:title" content="Quiz Results - AllianzQuiz">
+    <meta property="og:description" content="Check your quiz results on the AllianzQuiz professional CBT platform.">
+    <meta property="og:image" content="assets/img/og-image.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Quiz Results - AllianzQuiz">
+    <meta name="twitter:description" content="Check your quiz results on the AllianzQuiz professional CBT platform.">
+    <meta name="twitter:image" content="assets/img/og-image.png">
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -59,14 +72,12 @@
         });
 
         async function renderResult() {
-            // Check for submission ID in URL
             const params = new URLSearchParams(window.location.search);
             const submissionId = params.get('id');
 
             let res = null;
 
             if (submissionId) {
-                // Fetch from Firestore
                 try {
                     res = await getSubmissionById(submissionId);
                 } catch (error) {
@@ -74,7 +85,6 @@
                 }
             }
 
-            // Fallback to localStorage for immediate after-quiz view
             if (!res) {
                 const resultStr = localStorage.getItem('cbt_last_result');
                 if (resultStr) {
@@ -162,7 +172,6 @@
             }
         }
 
-        // Check auth and render
         onAuthChange(async (user) => {
             if (!user) {
                 window.location.href = 'index.html';

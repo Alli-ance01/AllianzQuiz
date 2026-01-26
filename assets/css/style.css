@@ -529,7 +529,7 @@ a {
     background: var(--bg-color);
 }
 
-/* Admin Section Styles */
+/* STYLING FOR ADMIN PAGE */
 .admin-section {
     background: var(--card-bg);
     padding: 2rem;
@@ -781,7 +781,6 @@ a {
     color: var(--pending-text);
 }
 
-/* Skeleton Loaders */
 .skeleton {
     background: var(--bg-color);
     background: linear-gradient(90deg, var(--bg-color) 25%, var(--border-color) 50%, var(--bg-color) 75%);
@@ -819,7 +818,6 @@ a {
     }
 }
 
-/* Animations */
 .fade-in {
     animation: fadeIn 0.4s ease-out forwards;
 }
@@ -873,7 +871,6 @@ a {
     font-weight: 500;
 }
 
-/* Tablet / Large Phone Responsiveness */
 @media (max-width: 768px) {
     .analytics-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -881,7 +878,6 @@ a {
     }
 }
 
-/* Mobile Responsiveness */
 @media (max-width: 480px) {
     .analytics-grid {
         grid-template-columns: 1fr;
@@ -968,7 +964,6 @@ a {
     }
 }
 
-/* Auth Toggle Tabs */
 .auth-tab {
     flex: 1;
     padding: 0.75rem 1rem;
@@ -992,7 +987,6 @@ a {
     color: var(--text-color);
 }
 
-/* Role Selector */
 .role-btn {
     flex: 1;
     padding: 0.75rem 1rem;
@@ -1017,7 +1011,6 @@ a {
     border-color: var(--primary-color);
 }
 
-/* Calculator Widget Styles */
 .calculator-widget {
     position: fixed;
     bottom: 2rem;
@@ -1126,7 +1119,6 @@ a {
     grid-row: span 2;
 }
 
-/* Responsive adjustments for calculator */
 @media (max-width: 640px) {
     .calculator-widget {
         width: 260px;
