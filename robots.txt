@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://allianz-quiz.web.app/sitemap.xml
+Sitemap: https://allianz-quiz.vercel.app/sitemap.xml
