@@ -195,6 +195,12 @@ function init() {
                     const user = getCurrentUser();
                     const profile = await getUserProfile(user.uid);
 
+                    // Check if user is disabled
+                    if (profile && profile.disabled) {
+                        await signOutUser();
+                        throw new Error('Your account has been disabled. Please contact support.');
+                    }
+
                     if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
                         window.location.href = 'admin.html';
                     } else {

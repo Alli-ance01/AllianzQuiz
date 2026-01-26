@@ -1,0 +1,311 @@
+// Owner Dashboard - Secret Super Admin Panel
+// This file handles authentication and data management for the owner dashboard
+
+import { db } from './firebase-config.js';
+import {
+    collection,
+    doc,
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    query,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ==================== SECRET ACCESS KEY ====================
+// IMPORTANT: Change this to your own secret key!
+const OWNER_ACCESS_KEY = 'AllianzOwner2026!';
+
+// ==================== SESSION MANAGEMENT ====================
+
+function isAuthenticated() {
+    return sessionStorage.getItem('owner_auth') === 'true';
+}
+
+function authenticate() {
+    sessionStorage.setItem('owner_auth', 'true');
+}
+
+window.ownerLogout = function () {
+    sessionStorage.removeItem('owner_auth');
+    location.reload();
+};
+
+// ==================== THEME MANAGEMENT ====================
+
+function applyTheme() {
+    let saved = localStorage.getItem('cbt_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeIcon();
+}
+
+function toggleTheme() {
+    let current = localStorage.getItem('cbt_theme') || 'dark';
+    let next = current === 'light' ? 'dark' : 'light';
+    localStorage.setItem('cbt_theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    let btn = document.getElementById('themeToggleBtn');
+    if (!btn) return;
+    let current = localStorage.getItem('cbt_theme') || 'dark';
+    btn.innerHTML = current === 'light' ? '🌙' : '☀️';
+}
+
+// ==================== DATA STORAGE ====================
+
+let allUsers = [];
+let allQuizzes = [];
+let allSubmissions = [];
+
+// ==================== DATA FETCHING ====================
+
+async function fetchAllUsers() {
+    const snapshot = await getDocs(collection(db, 'users'));
+    allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return allUsers;
+}
+
+async function fetchAllQuizzes() {
+    const snapshot = await getDocs(collection(db, 'quizzes'));
+    allQuizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return allQuizzes;
+}
+
+async function fetchAllSubmissions() {
+    const snapshot = await getDocs(collection(db, 'attempts'));
+    allSubmissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return allSubmissions;
+}
+
+// ==================== RENDERING ====================
+
+function renderStats() {
+    document.getElementById('statUsers').textContent = allUsers.length;
+    document.getElementById('statQuizzes').textContent = allQuizzes.length;
+    document.getElementById('statAttempts').textContent = allSubmissions.length;
+
+    const avgScore = allSubmissions.length > 0
+        ? Math.round(allSubmissions.reduce((sum, s) => sum + (s.percentage || 0), 0) / allSubmissions.length)
+        : 0;
+    document.getElementById('statAvgScore').textContent = avgScore + '%';
+}
+
+function renderUsers(users = allUsers) {
+    const tbody = document.getElementById('usersBody');
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No users found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = users.map(user => `
+        <tr>
+            <td><strong>${user.displayName || 'N/A'}</strong></td>
+            <td>${user.email || 'N/A'}</td>
+            <td><span class="badge ${user.role === 'admin' ? 'badge-warning' : 'badge-success'}">${user.role || 'student'}</span></td>
+            <td><span class="badge ${user.disabled ? 'badge-error' : 'badge-success'}">${user.disabled ? 'Disabled' : 'Active'}</span></td>
+            <td>
+                ${user.disabled
+            ? `<button class="action-btn action-btn-success" onclick="enableUser('${user.id}')">Enable</button>`
+            : `<button class="action-btn action-btn-warning" onclick="disableUser('${user.id}')">Disable</button>`
+        }
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderQuizzes(quizzes = allQuizzes) {
+    const tbody = document.getElementById('quizzesBody');
+    if (quizzes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No quizzes found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = quizzes.map(quiz => `
+        <tr>
+            <td><strong>${quiz.title || 'Untitled'}</strong></td>
+            <td>${quiz.creatorName || 'Unknown'}</td>
+            <td><span class="badge ${quiz.visibility === 'private' ? 'badge-warning' : 'badge-success'}">${quiz.visibility || 'public'}</span></td>
+            <td>${quiz.questions?.length || 0}</td>
+            <td>
+                <button class="action-btn action-btn-danger" onclick="deleteQuiz('${quiz.id}')">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderSubmissions(submissions = allSubmissions) {
+    const tbody = document.getElementById('submissionsBody');
+    if (submissions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No submissions found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = submissions.map(sub => {
+        const date = sub.timestamp?.toDate ? sub.timestamp.toDate() : new Date(sub.timestamp);
+        const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+        return `
+            <tr>
+                <td>${sub.userName || 'Unknown'}</td>
+                <td>${sub.quizTitle || 'Unknown'}</td>
+                <td><span class="badge ${sub.percentage >= 50 ? 'badge-success' : 'badge-error'}">${sub.percentage || 0}%</span></td>
+                <td>${dateStr}</td>
+                <td>
+                    <button class="action-btn action-btn-danger" onclick="deleteSubmission('${sub.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ==================== ACTIONS ====================
+
+window.disableUser = async function (userId) {
+    const confirmed = await Swal.fire({
+        title: 'Disable User?',
+        text: 'This user will not be able to log in.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, disable'
+    });
+
+    if (confirmed.isConfirmed) {
+        await updateDoc(doc(db, 'users', userId), { disabled: true });
+        await refreshData();
+        Swal.fire('Disabled!', 'User has been disabled.', 'success');
+    }
+};
+
+window.enableUser = async function (userId) {
+    await updateDoc(doc(db, 'users', userId), { disabled: false });
+    await refreshData();
+    Swal.fire('Enabled!', 'User has been enabled.', 'success');
+};
+
+window.deleteQuiz = async function (quizId) {
+    const confirmed = await Swal.fire({
+        title: 'Delete Quiz?',
+        text: 'This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete',
+        confirmButtonColor: '#EF4444'
+    });
+
+    if (confirmed.isConfirmed) {
+        await deleteDoc(doc(db, 'quizzes', quizId));
+        await refreshData();
+        Swal.fire('Deleted!', 'Quiz has been deleted.', 'success');
+    }
+};
+
+window.deleteSubmission = async function (submissionId) {
+    const confirmed = await Swal.fire({
+        title: 'Delete Submission?',
+        text: 'This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete',
+        confirmButtonColor: '#EF4444'
+    });
+
+    if (confirmed.isConfirmed) {
+        await deleteDoc(doc(db, 'attempts', submissionId));
+        await refreshData();
+        Swal.fire('Deleted!', 'Submission has been deleted.', 'success');
+    }
+};
+
+// ==================== FILTERING ====================
+
+window.filterUsers = function () {
+    const search = document.getElementById('userSearch').value.toLowerCase();
+    const filtered = allUsers.filter(u =>
+        (u.displayName || '').toLowerCase().includes(search) ||
+        (u.email || '').toLowerCase().includes(search)
+    );
+    renderUsers(filtered);
+};
+
+window.filterQuizzes = function () {
+    const search = document.getElementById('quizSearch').value.toLowerCase();
+    const filtered = allQuizzes.filter(q =>
+        (q.title || '').toLowerCase().includes(search) ||
+        (q.creatorName || '').toLowerCase().includes(search)
+    );
+    renderQuizzes(filtered);
+};
+
+window.filterSubmissions = function () {
+    const search = document.getElementById('submissionSearch').value.toLowerCase();
+    const filtered = allSubmissions.filter(s =>
+        (s.userName || '').toLowerCase().includes(search) ||
+        (s.quizTitle || '').toLowerCase().includes(search)
+    );
+    renderSubmissions(filtered);
+};
+
+// ==================== TAB SWITCHING ====================
+
+window.switchTab = function (tabName) {
+    document.querySelectorAll('.owner-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.owner-content').forEach(c => c.classList.remove('active'));
+
+    document.querySelector(`.owner-tab:nth-child(${tabName === 'users' ? 1 : tabName === 'quizzes' ? 2 : 3})`).classList.add('active');
+    document.getElementById(`${tabName}Tab`).classList.add('active');
+};
+
+// ==================== REFRESH DATA ====================
+
+async function refreshData() {
+    await Promise.all([fetchAllUsers(), fetchAllQuizzes(), fetchAllSubmissions()]);
+    renderStats();
+    renderUsers();
+    renderQuizzes();
+    renderSubmissions();
+}
+
+// ==================== INITIALIZATION ====================
+
+function init() {
+    applyTheme();
+
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+
+    if (isAuthenticated()) {
+        showDashboard();
+    } else {
+        showLogin();
+    }
+}
+
+function showLogin() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('dashboardScreen').style.display = 'none';
+
+    document.getElementById('ownerLoginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const key = document.getElementById('accessKey').value;
+
+        if (key === OWNER_ACCESS_KEY) {
+            authenticate();
+            showDashboard();
+        } else {
+            Swal.fire('Access Denied', 'Invalid access key.', 'error');
+        }
+    });
+}
+
+async function showDashboard() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboardScreen').style.display = 'block';
+
+    await refreshData();
+}
+
+// Start
+init();
