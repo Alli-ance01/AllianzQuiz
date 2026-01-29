@@ -1,4 +1,3 @@
-// Admin.js - Admin Dashboard functionality
 
 import { logout } from './logic.js';
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
@@ -24,7 +23,6 @@ let currentSubmissions = [];
 let currentReviewTab = 'pending';
 let searchTimeout = null;
 
-// ==================== SKELETON LOADERS ====================
 
 const initialQuizSkeleton = `
     <div class="card skeleton-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.5rem;">
@@ -46,7 +44,6 @@ const initialReviewSkeleton = `
     </div>
 `.repeat(4);
 
-// ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
     if (!user) return; // logic.js handles redirection
@@ -66,7 +63,6 @@ onAuthChange(async (user) => {
     await loadAllSubmissionsCount();
 });
 
-// ==================== VISIBILITY SELECTOR ====================
 
 window.selectVisibility = function (visibility) {
     selectedVisibility = visibility;
@@ -85,7 +81,6 @@ window.selectVisibility = function (visibility) {
     }
 };
 
-// ==================== QUESTION MANAGEMENT ====================
 
 window.addQuestion = function (data = null) {
     const q = data || {
@@ -223,7 +218,6 @@ function renderQuestions() {
     });
 }
 
-// ==================== QUIZ FORM SUBMISSION ====================
 
 document.getElementById('quizForm').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -307,7 +301,6 @@ function resetForm() {
     addQuestion();
 }
 
-// ==================== LOAD MY QUIZZES ====================
 
 async function loadMyQuizzes() {
     const list = document.getElementById('customQuizList');
@@ -452,7 +445,6 @@ window.duplicateQuiz = async function (id) {
     }
 };
 
-// ==================== SUBMISSIONS ====================
 
 window.loadSubmissionsForSelectedQuiz = async function () {
     const quizId = document.getElementById('quizSelector').value;

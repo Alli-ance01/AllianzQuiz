@@ -1,5 +1,3 @@
-// Owner Dashboard - Secret Super Admin Panel
-// This file handles authentication and data management for the owner dashboard
 
 import { db, auth } from './firebase-config.js';
 import {
@@ -17,12 +15,9 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ==================== OWNER CREDENTIALS ====================
-// IMPORTANT: Change these to your own credentials!
 const OWNER_EMAIL = 'owner@allianzquiz.com';  // Your Firebase Auth email
 const OWNER_PASSWORD = 'AllianzOwner2026!';   // Your Firebase Auth password
 
-// ==================== SESSION MANAGEMENT ====================
 
 function isAuthenticated() {
     return auth.currentUser !== null;
@@ -33,7 +28,6 @@ window.ownerLogout = async function () {
     location.reload();
 };
 
-// ==================== THEME MANAGEMENT ====================
 
 function applyTheme() {
     let saved = localStorage.getItem('cbt_theme') || 'dark';
@@ -56,13 +50,11 @@ function updateThemeIcon() {
     btn.innerHTML = current === 'light' ? '🌙' : '☀️';
 }
 
-// ==================== DATA STORAGE ====================
 
 let allUsers = [];
 let allQuizzes = [];
 let allSubmissions = [];
 
-// ==================== DATA FETCHING ====================
 
 async function fetchAllUsers() {
     try {
@@ -112,7 +104,6 @@ async function fetchAllSubmissions() {
     }
 }
 
-// ==================== RENDERING ====================
 
 function renderStats() {
     document.getElementById('statUsers').textContent = allUsers.length;
@@ -199,7 +190,6 @@ function renderSubmissions(submissions = allSubmissions) {
     }).join('');
 }
 
-// ==================== PERMISSIONS FIX ====================
 
 window.fixMyPermissions = async function () {
     const user = auth.currentUser;
@@ -246,7 +236,6 @@ window.fixMyPermissions = async function () {
     }
 };
 
-// ==================== ACTIONS ====================
 
 window.disableUser = async function (userId) {
     const confirmed = await Swal.fire({
@@ -314,7 +303,6 @@ window.deleteSubmission = async function (submissionId) {
     }
 };
 
-// ==================== FILTERING ====================
 
 window.filterUsers = function () {
     const search = document.getElementById('userSearch').value.toLowerCase();
@@ -343,7 +331,6 @@ window.filterSubmissions = function () {
     renderSubmissions(filtered);
 };
 
-// ==================== TAB SWITCHING ====================
 
 window.switchTab = function (tabName) {
     document.querySelectorAll('.owner-tab').forEach(t => t.classList.remove('active'));
@@ -353,7 +340,6 @@ window.switchTab = function (tabName) {
     document.getElementById(`${tabName}Tab`).classList.add('active');
 };
 
-// ==================== REFRESH DATA ====================
 
 async function refreshData() {
     // Show loading state in tables
@@ -369,7 +355,6 @@ async function refreshData() {
     renderSubmissions();
 }
 
-// ==================== INITIALIZATION ====================
 
 function init() {
     applyTheme();
@@ -377,7 +362,6 @@ function init() {
     const themeBtn = document.getElementById('themeToggleBtn');
     if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
 
-    // Listen for auth state changes
     onAuthStateChanged(auth, (user) => {
         if (user) {
             showDashboard();
@@ -395,7 +379,6 @@ function showLogin() {
         e.preventDefault();
         const key = document.getElementById('accessKey').value;
 
-        // The access key IS the password for your owner account
         try {
             await signInWithEmailAndPassword(auth, OWNER_EMAIL, key);
             // Auth state change will trigger showDashboard
@@ -413,5 +396,4 @@ async function showDashboard() {
     await refreshData();
 }
 
-// Start
 init();

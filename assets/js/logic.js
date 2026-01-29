@@ -135,7 +135,7 @@ export function checkAuth() {
 
 function init() {
     applyTheme();
-    checkAuth(); // Added centralized auth check
+    checkAuth();
 
     let toggleBtn = document.getElementById('themeToggleBtn');
     if (toggleBtn) {

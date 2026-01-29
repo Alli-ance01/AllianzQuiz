@@ -3,11 +3,9 @@ import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js
 import { getPublicQuizzes, getQuizByAccessCode, getSubmissionsByUser } from './firebase-db.js';
 import { showError, showSuccess } from './ui-helpers.js';
 
-// ==================== GLOBAL STATE ====================
 
 let currentUserId = null;
 
-// ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
     if (!user) return; // logic.js handles redirection
@@ -28,13 +26,10 @@ onAuthChange(async (user) => {
     await loadHistory();
 });
 
-// Load logic to handle side-effects like theme and service worker
 import './logic.js';
 
-// Make logout available globally
 window.logout = (await import('./logic.js')).logout;
 
-// ==================== SKELETON LOADERS ====================
 
 const initialHistorySkeleton = `
     <div class="card skeleton-card" style="margin-bottom:0.75rem;">
@@ -52,7 +47,6 @@ const initialQuizSkeleton = `
     </div>
 `.repeat(4);
 
-// ==================== LOADING FUNCTIONS ====================
 
 async function loadQuizzes() {
     const grid = document.getElementById('quizGrid');
@@ -126,7 +120,6 @@ async function loadHistory() {
     }
 }
 
-// ==================== ACTIONS ====================
 
 window.joinPrivateQuiz = async function () {
     const codeInput = document.getElementById('quizCodeInput');
