@@ -1,6 +1,6 @@
 // Admin.js - Admin Dashboard functionality
 
-import { logout } from './logic.js';
+import { logout, setupStatusMonitoring } from './logic.js';
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import {
     createQuiz,
@@ -53,6 +53,9 @@ onAuthChange(async (user) => {
         window.location.href = 'index.html';
         return;
     }
+
+    // Start monitoring status in real-time
+    setupStatusMonitoring(user);
 
     // Verify this is an admin
     const profile = await getUserProfile(user.uid);

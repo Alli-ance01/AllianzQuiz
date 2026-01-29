@@ -7,7 +7,22 @@ import {
     signOut,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Monitor user status in real-time (e.g., to detect if account is disabled)
+export function monitorUserStatus(userId, callback) {
+    if (!userId) return null;
+    const docRef = doc(db, 'users', userId);
+    return onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            callback({ id: docSnap.id, ...docSnap.data() });
+        } else {
+            callback(null);
+        }
+    }, (error) => {
+        console.error("Error monitoring user status:", error);
+    });
+}
 
 // Sign up a new user with email, password, and role
 export async function signUp(email, password, displayName, role = 'student') {

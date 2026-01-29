@@ -1,6 +1,6 @@
 // Logic.js - Theme management and Firebase Authentication
 
-import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin } from './firebase-auth.js';
+import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin, monitorUserStatus } from './firebase-auth.js';
 import { showSuccess, showError, confirmAction } from './ui-helpers.js';
 import { clearCache } from './firebase-db.js';
 
@@ -34,6 +34,7 @@ applyTheme();
 
 let currentAuthMode = 'signin';
 let selectedRole = 'student';
+let userStatusUnsubscribe = null;
 
 // Switch between Sign In and Sign Up modes
 window.switchAuthMode = function (mode) {
@@ -113,18 +114,57 @@ export async function logout() {
 // Make logout available globally
 window.logout = logout;
 
+// Monitor user status in real-time
+export function setupStatusMonitoring(user) {
+    if (!user || userStatusUnsubscribe) return;
+
+    userStatusUnsubscribe = monitorUserStatus(user.uid, async (profile) => {
+        if (profile && profile.disabled) {
+            if (userStatusUnsubscribe) {
+                userStatusUnsubscribe();
+                userStatusUnsubscribe = null;
+            }
+            await signOutUser();
+            window.location.href = 'index.html';
+        }
+    });
+}
+
 // Check if user is authenticated (for protected pages)
 export function checkAuth() {
     onAuthChange(async (user) => {
         const currentPage = window.location.pathname;
         const isLoginPage = currentPage.includes('index.html') || currentPage.endsWith('/');
 
-        if (!user && !isLoginPage) {
-            // Not logged in and not on login page - redirect to login
-            window.location.href = 'index.html';
-        } else if (user && isLoginPage) {
+        if (!user) {
+            if (!isLoginPage) {
+                // Not logged in and not on login page - redirect to login
+                if (userStatusUnsubscribe) {
+                    userStatusUnsubscribe();
+                    userStatusUnsubscribe = null;
+                }
+                window.location.href = 'index.html';
+            }
+            return;
+        }
+
+        // Start monitoring status
+        setupStatusMonitoring(user);
+
+        if (isLoginPage) {
             // Logged in but on login page - redirect to appropriate dashboard
             const profile = await getUserProfile(user.uid);
+
+            // Quick check before redirect
+            if (profile && profile.disabled) {
+                if (userStatusUnsubscribe) {
+                    userStatusUnsubscribe();
+                    userStatusUnsubscribe = null;
+                }
+                await signOutUser();
+                return;
+            }
+
             if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
                 window.location.href = 'admin.html';
             } else {

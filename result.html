@@ -54,7 +54,8 @@
     </main>
     <script type="module">
         import { getSubmissionById } from './assets/js/firebase-db.js';
-        import { onAuthChange } from './assets/js/firebase-auth.js';
+        import { onAuthChange, getUserProfile } from './assets/js/firebase-auth.js';
+        import { setupStatusMonitoring } from './assets/js/logic.js';
 
         function applyTheme() {
             let saved = localStorage.getItem('cbt_theme') || 'light';
@@ -172,11 +173,26 @@
             }
         }
 
+
+
         onAuthChange(async (user) => {
             if (!user) {
                 window.location.href = 'index.html';
                 return;
             }
+
+            // Start monitoring status in real-time
+            setupStatusMonitoring(user);
+
+            // Verify status immediately
+            const profile = await getUserProfile(user.uid);
+            if (profile && profile.disabled) {
+                const { signOutUser } = await import('./assets/js/firebase-auth.js');
+                await signOutUser();
+                window.location.href = 'index.html';
+                return;
+            }
+
             await renderResult();
         });
     </script>

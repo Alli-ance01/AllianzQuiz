@@ -1,7 +1,7 @@
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import { getQuizById, saveSubmission } from './firebase-db.js';
 import { showError, showSuccess, showLoadingToast, confirmAction } from './ui-helpers.js';
-import './logic.js';
+import { setupStatusMonitoring } from './logic.js';
 
 let myQuizData = null;
 let currentQIdx = 0;
@@ -20,6 +20,10 @@ onAuthChange(async (user) => {
     }
 
     currentUserId = user.uid;
+
+    // Start monitoring status in real-time
+    setupStatusMonitoring(user);
+
     currentUserProfile = await getUserProfile(user.uid);
 
     if (currentUserProfile && currentUserProfile.disabled) {

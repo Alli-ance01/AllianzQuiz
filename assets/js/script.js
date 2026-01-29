@@ -1,4 +1,4 @@
-import { getUser, logout, checkAuth } from './logic.js';
+import { getUser, logout, checkAuth, setupStatusMonitoring } from './logic.js';
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import { getPublicQuizzes, getQuizByAccessCode, getSubmissionsByUser } from './firebase-db.js';
 import { showError, showSuccess } from './ui-helpers.js';
@@ -14,6 +14,9 @@ onAuthChange(async (user) => {
         window.location.href = 'index.html';
         return;
     }
+
+    // Start monitoring status in real-time
+    setupStatusMonitoring(user);
 
     // Verify this is a student (not admin)
     const profile = await getUserProfile(user.uid);
