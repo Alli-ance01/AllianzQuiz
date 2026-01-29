@@ -1,3 +1,4 @@
+// Admin.js - Admin Dashboard functionality
 
 import { logout } from './logic.js';
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
@@ -23,6 +24,7 @@ let currentSubmissions = [];
 let currentReviewTab = 'pending';
 let searchTimeout = null;
 
+// ==================== SKELETON LOADERS ====================
 
 const initialQuizSkeleton = `
     <div class="card skeleton-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; margin-bottom: 0.5rem;">
@@ -44,25 +46,50 @@ const initialReviewSkeleton = `
     </div>
 `.repeat(4);
 
+// ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
-    if (!user) return; // logic.js handles redirection
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
 
+    // Verify this is an admin
     const profile = await getUserProfile(user.uid);
-    if (!profile) return; // logic.js handles redirection for disabled profiles
+
+    // Global block for disabled users
+    if (profile && profile.disabled) {
+        const { signOutUser } = await import('./firebase-auth.js');
+        await signOutUser();
+        window.location.href = 'index.html';
+        return;
+    }
+
+    if (!profile || (profile.role !== 'admin' && profile.role !== 'teacher')) {
+        // Not an admin, redirect to student dashboard
+        window.location.href = 'dashboard.html';
+        return;
+    }
 
     currentAdminId = user.uid;
 
-    // Load admin info
-    document.getElementById('adminEmail').textContent = user.email;
-    document.getElementById('welcomeMsg').textContent = "Admin Dashboard";
+    // Update header
+    document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.displayName || 'Admin'}!`;
+    document.getElementById('adminEmail').textContent = profile.email;
 
-    // Load data
+    // Load admin's quizzes
     await loadMyQuizzes();
-    await loadQuizSelector();
-    await loadAllSubmissionsCount();
+
+    // Initial analytics
+    await updateAnalytics();
+
+    // Add initial question
+    if (questions.length === 0) {
+        addQuestion();
+    }
 });
 
+// ==================== VISIBILITY SELECTOR ====================
 
 window.selectVisibility = function (visibility) {
     selectedVisibility = visibility;
@@ -81,6 +108,7 @@ window.selectVisibility = function (visibility) {
     }
 };
 
+// ==================== QUESTION MANAGEMENT ====================
 
 window.addQuestion = function (data = null) {
     const q = data || {
@@ -218,6 +246,7 @@ function renderQuestions() {
     });
 }
 
+// ==================== QUIZ FORM SUBMISSION ====================
 
 document.getElementById('quizForm').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -301,6 +330,7 @@ function resetForm() {
     addQuestion();
 }
 
+// ==================== LOAD MY QUIZZES ====================
 
 async function loadMyQuizzes() {
     const list = document.getElementById('customQuizList');
@@ -445,6 +475,7 @@ window.duplicateQuiz = async function (id) {
     }
 };
 
+// ==================== SUBMISSIONS ====================
 
 window.loadSubmissionsForSelectedQuiz = async function () {
     const quizId = document.getElementById('quizSelector').value;

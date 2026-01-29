@@ -3,33 +3,55 @@ import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js
 import { getPublicQuizzes, getQuizByAccessCode, getSubmissionsByUser } from './firebase-db.js';
 import { showError, showSuccess } from './ui-helpers.js';
 
+// ==================== GLOBAL STATE ====================
 
 let currentUserId = null;
 
+// ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
-    if (!user) return; // logic.js handles redirection
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
 
+    // Verify this is a student (not admin)
     const profile = await getUserProfile(user.uid);
-    if (!profile) return; // logic.js handles redirection for disabled/missing profiles
+
+    // Global block for disabled users
+    if (profile && profile.disabled) {
+        const { signOutUser } = await import('./firebase-auth.js');
+        await signOutUser();
+        window.location.href = 'index.html';
+        return;
+    }
+
+    if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
+        // Admins should be on admin.html
+        window.location.href = 'admin.html';
+        return;
+    }
 
     currentUserId = user.uid;
 
     // Load user info
-    document.getElementById('welcomeMsg').textContent = "Welcome back, " + (profile.displayName || 'User').split(' ')[0] + "!";
-    document.getElementById('userName').textContent = profile.displayName || 'User';
-    document.getElementById('userEmail').textContent = profile.email || user.email;
-    document.getElementById('userAvatar').textContent = (profile.displayName || 'U').charAt(0).toUpperCase();
+    document.getElementById('welcomeMsg').textContent = "Welcome back, " + (profile?.displayName || 'User').split(' ')[0] + "!";
+    document.getElementById('userName').textContent = profile?.displayName || 'User';
+    document.getElementById('userEmail').textContent = profile?.email || user.email;
+    document.getElementById('userAvatar').textContent = (profile?.displayName || 'U').charAt(0).toUpperCase();
 
     // Load quizzes and history
     await loadQuizzes();
     await loadHistory();
 });
 
+// Load logic to handle side-effects like theme and service worker
 import './logic.js';
 
+// Make logout available globally
 window.logout = (await import('./logic.js')).logout;
 
+// ==================== SKELETON LOADERS ====================
 
 const initialHistorySkeleton = `
     <div class="card skeleton-card" style="margin-bottom:0.75rem;">
@@ -47,6 +69,7 @@ const initialQuizSkeleton = `
     </div>
 `.repeat(4);
 
+// ==================== LOADING FUNCTIONS ====================
 
 async function loadQuizzes() {
     const grid = document.getElementById('quizGrid');
@@ -120,6 +143,7 @@ async function loadHistory() {
     }
 }
 
+// ==================== ACTIONS ====================
 
 window.joinPrivateQuiz = async function () {
     const codeInput = document.getElementById('quizCodeInput');

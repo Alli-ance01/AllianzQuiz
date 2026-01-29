@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Console</title>
     <link rel="icon" type="image/png" href="assets/img/logo.png">
-    <link rel="apple-touch-icon" href="assets/img/logo.png">
     <meta name="robots" content="noindex, nofollow">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -195,6 +194,7 @@
 </head>
 
 <body>
+    <!-- Login Screen -->
     <div id="loginScreen" class="owner-login">
         <div class="owner-login-card">
             <h2 style="margin-bottom: 0.5rem;">🔐 System Console</h2>
@@ -209,6 +209,7 @@
         </div>
     </div>
 
+    <!-- Dashboard Screen -->
     <div id="dashboardScreen" style="display: none;">
         <nav class="main-nav">
             <div class="container nav-content">
@@ -225,6 +226,7 @@
         </nav>
 
         <main class="container" style="margin-top: 2rem; padding-bottom: 3rem; max-width: 1100px;">
+            <!-- Stats -->
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="stat-value" id="statUsers">-</div>
@@ -244,12 +246,14 @@
                 </div>
             </div>
 
+            <!-- Tabs -->
             <div class="owner-tabs">
                 <button class="owner-tab active" onclick="switchTab('users')">👥 Users</button>
                 <button class="owner-tab" onclick="switchTab('quizzes')">📝 Quizzes</button>
                 <button class="owner-tab" onclick="switchTab('submissions')">📊 Submissions</button>
             </div>
 
+            <!-- Users Tab -->
             <div id="usersTab" class="owner-content active">
                 <div class="search-bar">
                     <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers()">
@@ -274,6 +278,7 @@
                 </div>
             </div>
 
+            <!-- Quizzes Tab -->
             <div id="quizzesTab" class="owner-content">
                 <div class="search-bar">
                     <input type="text" id="quizSearch" placeholder="Search quizzes..." oninput="filterQuizzes()">
@@ -298,6 +303,7 @@
                 </div>
             </div>
 
+            <!-- Submissions Tab -->
             <div id="submissionsTab" class="owner-content">
                 <div class="search-bar">
                     <input type="text" id="submissionSearch" placeholder="Search submissions..."
