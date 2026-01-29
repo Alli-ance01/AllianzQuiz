@@ -10,35 +10,18 @@ let currentUserId = null;
 // ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
-    if (!user) {
-        window.location.href = 'index.html';
-        return;
-    }
+    if (!user) return; // logic.js handles redirection
 
-    // Verify this is a student (not admin)
     const profile = await getUserProfile(user.uid);
-
-    // Global block for disabled users
-    if (profile && profile.disabled) {
-        const { signOutUser } = await import('./firebase-auth.js');
-        await signOutUser();
-        window.location.href = 'index.html';
-        return;
-    }
-
-    if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
-        // Admins should be on admin.html
-        window.location.href = 'admin.html';
-        return;
-    }
+    if (!profile) return; // logic.js handles redirection for disabled/missing profiles
 
     currentUserId = user.uid;
 
     // Load user info
-    document.getElementById('welcomeMsg').textContent = "Welcome back, " + (profile?.displayName || 'User').split(' ')[0] + "!";
-    document.getElementById('userName').textContent = profile?.displayName || 'User';
-    document.getElementById('userEmail').textContent = profile?.email || user.email;
-    document.getElementById('userAvatar').textContent = (profile?.displayName || 'U').charAt(0).toUpperCase();
+    document.getElementById('welcomeMsg').textContent = "Welcome back, " + (profile.displayName || 'User').split(' ')[0] + "!";
+    document.getElementById('userName').textContent = profile.displayName || 'User';
+    document.getElementById('userEmail').textContent = profile.email || user.email;
+    document.getElementById('userAvatar').textContent = (profile.displayName || 'U').charAt(0).toUpperCase();
 
     // Load quizzes and history
     await loadQuizzes();

@@ -1,10 +1,6 @@
-// Logic.js - Theme management and Firebase Authentication
-
-import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin } from './firebase-auth.js';
+import { signUp, signIn, signOutUser, getCurrentUser, getUserProfile, onAuthChange, isAdmin, monitorUserStatus } from './firebase-auth.js';
 import { showSuccess, showError, confirmAction } from './ui-helpers.js';
 import { clearCache } from './firebase-db.js';
-
-// ==================== THEME MANAGEMENT ====================
 
 function applyTheme() {
     let saved = localStorage.getItem('cbt_theme') || 'light';
@@ -27,15 +23,12 @@ function updateThemeIcon() {
     btn.innerHTML = current === 'light' ? '🌙' : '☀️';
 }
 
-// Apply theme immediately
 applyTheme();
 
-// ==================== AUTH STATE ====================
 
 let currentAuthMode = 'signin';
 let selectedRole = 'student';
 
-// Switch between Sign In and Sign Up modes
 window.switchAuthMode = function (mode) {
     currentAuthMode = mode;
 
@@ -69,7 +62,6 @@ window.switchAuthMode = function (mode) {
     }
 };
 
-// Select role (student/admin)
 window.selectRole = function (role) {
     selectedRole = role;
     document.querySelectorAll('.role-btn').forEach(btn => {
@@ -80,9 +72,6 @@ window.selectRole = function (role) {
     });
 };
 
-// ==================== AUTHENTICATION ====================
-
-// Get user from Firestore (replaces localStorage getUser)
 export async function getUser() {
     const user = getCurrentUser();
     if (!user) return null;
@@ -99,7 +88,6 @@ export async function getUser() {
     return null;
 }
 
-// Logout function
 export async function logout() {
     const confirmed = await confirmAction('Logout?', 'Are you sure you want to log out?', 'Yes, logout');
 
@@ -110,42 +98,50 @@ export async function logout() {
     }
 }
 
-// Make logout available globally
 window.logout = logout;
 
-// Check if user is authenticated (for protected pages)
 export function checkAuth() {
     onAuthChange(async (user) => {
-        const currentPage = window.location.pathname;
-        const isLoginPage = currentPage.includes('index.html') || currentPage.endsWith('/');
+        const path = window.location.pathname;
+        const isLoginPage = path.includes('index.html') || path.endsWith('/');
+        const isAdminPage = path.includes('admin.html');
+        const isDashboardPage = path.includes('dashboard.html');
+        const isQuizPage = path.includes('quiz.html');
 
-        if (!user && !isLoginPage) {
-            // Not logged in and not on login page - redirect to login
-            window.location.href = 'index.html';
-        } else if (user && isLoginPage) {
-            // Logged in but on login page - redirect to appropriate dashboard
-            const profile = await getUserProfile(user.uid);
-            if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
-                window.location.href = 'admin.html';
-            } else {
-                window.location.href = 'dashboard.html';
-            }
+        if (!user) {
+            if (!isLoginPage) window.location.href = 'index.html';
+            return;
         }
+
+        monitorUserStatus(user.uid, async (profile) => {
+            if (!profile || profile.disabled) {
+                await signOutUser();
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const isAdminRole = profile.role === 'admin' || profile.role === 'teacher';
+
+            if (isLoginPage) {
+                window.location.href = isAdminRole ? 'admin.html' : 'dashboard.html';
+            } else if (isAdminPage && !isAdminRole) {
+                window.location.href = 'dashboard.html';
+            } else if ((isDashboardPage || isQuizPage) && isAdminRole) {
+                window.location.href = 'admin.html';
+            }
+        });
     });
 }
 
-// ==================== INITIALIZATION ====================
-
 function init() {
     applyTheme();
+    checkAuth(); // Added centralized auth check
 
-    // Theme toggle button
     let toggleBtn = document.getElementById('themeToggleBtn');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', toggleTheme);
     }
 
-    // Password visibility toggle
     const togglePassword = document.getElementById('togglePassword');
     const password = document.getElementById('password');
     if (togglePassword && password) {
@@ -156,7 +152,6 @@ function init() {
         });
     }
 
-    // Login form handler
     let loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', async function (e) {
@@ -166,7 +161,6 @@ function init() {
             const password = document.getElementById('password').value;
             const submitBtn = document.getElementById('submitBtn');
 
-            // Disable button and show loading
             submitBtn.disabled = true;
             submitBtn.textContent = currentAuthMode === 'signup' ? 'Creating Account...' : 'Signing In...';
 
@@ -181,7 +175,6 @@ function init() {
                     await signUp(email, password, displayName, selectedRole);
                     await showSuccess('Account Created!', 'Welcome to AllianzQuiz!');
 
-                    // Redirect based on role
                     if (selectedRole === 'admin' || selectedRole === 'teacher') {
                         window.location.href = 'admin.html';
                     } else {
@@ -191,11 +184,9 @@ function init() {
                 } else {
                     await signIn(email, password);
 
-                    // Get user profile to determine redirect
                     const user = getCurrentUser();
                     const profile = await getUserProfile(user.uid);
 
-                    // Check if user is disabled
                     if (profile && profile.disabled) {
                         await signOutUser();
                         throw new Error('Your account has been disabled. Please contact support.');
@@ -218,27 +209,37 @@ function init() {
         });
     }
 
-    // Check auth state for login page redirect
     const currentPage = window.location.pathname;
     const isLoginPage = currentPage.includes('index.html') || currentPage.endsWith('/');
 
     if (isLoginPage) {
-        // On login page, check if already logged in
         onAuthChange(async (user) => {
             if (user) {
-                const profile = await getUserProfile(user.uid);
+                monitorUserStatus(user.uid, async (profile) => {
+                    if (profile && profile.disabled) {
+                        await signOutUser();
+                        return;
+                    }
 
-                // Check if user is disabled
-                if (profile && profile.disabled) {
-                    await signOutUser();
-                    return; // Stays on login page
-                }
-
-                if (profile && (profile.role === 'admin' || profile.role === 'teacher')) {
-                    window.location.href = 'admin.html';
-                } else {
-                    window.location.href = 'dashboard.html';
-                }
+                    if (profile) {
+                        if (profile.role === 'admin' || profile.role === 'teacher') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'dashboard.html';
+                        }
+                    }
+                });
+            }
+        });
+    } else {
+        onAuthChange(async (user) => {
+            if (user) {
+                monitorUserStatus(user.uid, async (profile) => {
+                    if (profile && profile.disabled) {
+                        await signOutUser();
+                        window.location.href = 'index.html';
+                    }
+                });
             }
         });
     }
@@ -255,7 +256,6 @@ if (document.readyState === 'loading') {
 }
 
 function registerSW() {
-    // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
@@ -265,5 +265,4 @@ function registerSW() {
     }
 }
 
-// Export for other modules
 export { applyTheme, toggleTheme };

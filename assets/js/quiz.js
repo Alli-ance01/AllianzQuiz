@@ -1,11 +1,7 @@
-// Quiz.js - Quiz taking functionality
-
 import { onAuthChange, getCurrentUser, getUserProfile } from './firebase-auth.js';
 import { getQuizById, saveSubmission } from './firebase-db.js';
 import { showError, showSuccess, showLoadingToast, confirmAction } from './ui-helpers.js';
 import './logic.js';
-
-// ==================== GLOBAL STATE ====================
 
 let myQuizData = null;
 let currentQIdx = 0;
@@ -17,8 +13,6 @@ let startTime = 0;
 let currentUserId = null;
 let currentUserProfile = null;
 
-// ==================== AUTH CHECK ====================
-
 onAuthChange(async (user) => {
     if (!user) {
         window.location.href = 'index.html';
@@ -28,20 +22,9 @@ onAuthChange(async (user) => {
     currentUserId = user.uid;
     currentUserProfile = await getUserProfile(user.uid);
 
-    // Global block for disabled users
-    if (currentUserProfile && currentUserProfile.disabled) {
-        const { signOutUser } = await import('./firebase-auth.js');
-        await signOutUser();
-        window.location.href = 'index.html';
-        return;
-    }
-
-    // Initialize quiz
     await quizInit();
     applyProtection();
 });
-
-// ==================== QUIZ INITIALIZATION ====================
 
 async function quizInit() {
     const params = new URLSearchParams(window.location.search);
@@ -61,12 +44,10 @@ async function quizInit() {
     }
 
     try {
-        // Try to get from Firestore first if source is firestore
         if (source === 'firestore') {
             myQuizData = await getQuizById(quizId);
         }
 
-        // Fallback to local data.js
         if (!myQuizData && typeof myData !== 'undefined') {
             for (let i = 0; i < myData.length; i++) {
                 if (myData[i].id === quizId) {
@@ -88,7 +69,6 @@ async function quizInit() {
             return;
         }
 
-        // Check for saved state
         const savedState = loadQuizState(quizId);
         if (savedState) {
             const result = await Swal.fire({
@@ -102,7 +82,6 @@ async function quizInit() {
             });
 
             if (result.isConfirmed) {
-                // Restore state
                 myQuizData.questions = savedState.questions;
                 myAnswers = savedState.answers || {};
                 myFlags = savedState.flags || {};
@@ -121,7 +100,6 @@ async function quizInit() {
             }
         }
 
-        // Fresh Start: Shuffle questions
         for (let i = myQuizData.questions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             const temp = myQuizData.questions[i];

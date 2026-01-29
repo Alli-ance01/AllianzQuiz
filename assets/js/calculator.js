@@ -1,19 +1,13 @@
-/**
- * Calculator functionality for AllianzQuiz
- */
-
 let calcExpression = '';
 let calcResult = 0;
 let shouldResetDisplay = false;
 
-// Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     const calcWidget = document.getElementById('calculatorWidget');
     const toggleBtn = document.getElementById('calcToggleBtn');
     const closeBtn = document.getElementById('closeCalc');
     const header = document.getElementById('calcHeader');
 
-    // Toggle visibility
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
             const isVisible = calcWidget.style.display !== 'none';
@@ -31,10 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Make it draggable
     makeDraggable(calcWidget, header);
 
-    // Keyboard support
     document.addEventListener('keydown', (e) => {
         if (calcWidget.style.display === 'none') return;
 
@@ -62,8 +54,6 @@ function calcAction(val) {
         display.value = calcExpression || '0';
     } else if (val === '=') {
         try {
-            // Using a safer evaluation approach than just eval()
-            // We only allow [0-9], operators, and decimals
             const sanitized = calcExpression.replace(/[^-+*./0-9]/g, '');
             if (sanitized) {
                 const result = Function('"use strict";return (' + sanitized + ')')();
@@ -87,7 +77,6 @@ function calcAction(val) {
     }
 }
 
-// Draggable Helper
 function makeDraggable(el, handle) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     handle.onmousedown = dragMouseDown;
@@ -109,13 +98,12 @@ function makeDraggable(el, handle) {
         pos3 = e.clientX;
         pos4 = e.clientY;
 
-        // Boundaries (optional but recommended)
         const newTop = el.offsetTop - pos2;
         const newLeft = el.offsetLeft - pos1;
 
         el.style.top = newTop + "px";
         el.style.left = newLeft + "px";
-        el.style.bottom = 'auto'; // Disable bottom/right constraints since we use top/left now
+        el.style.bottom = 'auto';
         el.style.right = 'auto';
     }
 
@@ -125,5 +113,4 @@ function makeDraggable(el, handle) {
     }
 }
 
-// Global scope attachment for HTML onclick handlers
 window.calcAction = calcAction;

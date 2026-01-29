@@ -49,44 +49,21 @@ const initialReviewSkeleton = `
 // ==================== AUTH CHECK ====================
 
 onAuthChange(async (user) => {
-    if (!user) {
-        window.location.href = 'index.html';
-        return;
-    }
+    if (!user) return; // logic.js handles redirection
 
-    // Verify this is an admin
     const profile = await getUserProfile(user.uid);
-
-    // Global block for disabled users
-    if (profile && profile.disabled) {
-        const { signOutUser } = await import('./firebase-auth.js');
-        await signOutUser();
-        window.location.href = 'index.html';
-        return;
-    }
-
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'teacher')) {
-        // Not an admin, redirect to student dashboard
-        window.location.href = 'dashboard.html';
-        return;
-    }
+    if (!profile) return; // logic.js handles redirection for disabled profiles
 
     currentAdminId = user.uid;
 
-    // Update header
-    document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.displayName || 'Admin'}!`;
-    document.getElementById('adminEmail').textContent = profile.email;
+    // Load admin info
+    document.getElementById('adminEmail').textContent = user.email;
+    document.getElementById('welcomeMsg').textContent = "Admin Dashboard";
 
-    // Load admin's quizzes
+    // Load data
     await loadMyQuizzes();
-
-    // Initial analytics
-    await updateAnalytics();
-
-    // Add initial question
-    if (questions.length === 0) {
-        addQuestion();
-    }
+    await loadQuizSelector();
+    await loadAllSubmissionsCount();
 });
 
 // ==================== VISIBILITY SELECTOR ====================
