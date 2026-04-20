@@ -45,7 +45,10 @@
     <main class="container" style="margin-top: 2rem; padding-bottom: 4rem; max-width: 900px;">
         <div class="dashboard-header">
             <div>
-                <h1 id="welcomeMsg">Admin Dashboard</h1>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <h1 id="welcomeMsg">Admin Dashboard</h1>
+                    <button onclick="editProfile()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.8rem; margin-top: 5px;" aria-label="Edit Profile">✏️ Edit Profile</button>
+                </div>
                 <p id="adminEmail" style="color: var(--text-muted);">Manage your quizzes</p>
             </div>
         </div>

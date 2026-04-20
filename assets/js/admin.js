@@ -92,6 +92,46 @@ onAuthChange(async (user) => {
     }
 });
 
+window.editProfile = async function () {
+    // Extract current name from "Welcome, User!"
+    const msg = document.getElementById('welcomeMsg').textContent;
+    const currentName = msg.replace('Welcome, ', '').replace('!', '').trim();
+    
+    const { value: newName } = await Swal.fire({
+        title: 'Edit Profile',
+        input: 'text',
+        inputLabel: 'Display Name',
+        inputValue: currentName,
+        showCancelButton: true,
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You need to write something!';
+            }
+        }
+    });
+
+    if (newName && newName !== currentName) {
+        try {
+            const { updateUserProfile } = await import('./firebase-auth.js');
+            await updateUserProfile(newName);
+            
+            // Update DOM
+            document.getElementById('welcomeMsg').textContent = `Welcome, ${newName}!`;
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Profile updated successfully!',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            Swal.fire('Error', 'Update Failed', 'error');
+        }
+    }
+};
+
 // ==================== VISIBILITY SELECTOR ====================
 
 window.selectVisibility = function (visibility) {

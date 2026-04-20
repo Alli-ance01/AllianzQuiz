@@ -178,3 +178,37 @@ window.clearHistory = async function () {
         icon: 'info'
     });
 };
+
+window.editProfile = async function () {
+    const currentName = document.getElementById('userName').textContent;
+    
+    const { value: newName } = await Swal.fire({
+        title: 'Edit Profile',
+        input: 'text',
+        inputLabel: 'Display Name',
+        inputValue: currentName,
+        showCancelButton: true,
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You need to write something!';
+            }
+        }
+    });
+
+    if (newName && newName !== currentName) {
+        try {
+            const { updateUserProfile } = await import('./firebase-auth.js');
+            await updateUserProfile(newName);
+            
+            // Update DOM
+            document.getElementById('userName').textContent = newName;
+            document.getElementById('userAvatar').textContent = newName.charAt(0).toUpperCase();
+            document.getElementById('welcomeMsg').textContent = "Welcome back, " + newName.split(' ')[0] + "!";
+            
+            showSuccess('Profile updated successfully!');
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            showError(error, 'Update Failed');
+        }
+    }
+};

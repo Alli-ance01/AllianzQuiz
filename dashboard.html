@@ -48,7 +48,10 @@
             <div class="user-info">
                 <div id="userAvatar" class="avatar">U</div>
                 <div>
-                    <div id="userName" style="font-weight: 600;">User</div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div id="userName" style="font-weight: 600;">User</div>
+                        <button onclick="editProfile()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.8rem;" aria-label="Edit Profile">✏️ Edit</button>
+                    </div>
                     <div id="userEmail" style="font-size: 0.8rem; color: grey;">user@example.com</div>
                 </div>
             </div>

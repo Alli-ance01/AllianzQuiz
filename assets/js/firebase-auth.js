@@ -8,7 +8,7 @@ import {
     onAuthStateChanged,
     updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Monitor user status in real-time (e.g., to detect if account is disabled)
 export function monitorUserStatus(userId, callback) {
@@ -92,4 +92,20 @@ export async function isStudent() {
 
     const profile = await getUserProfile(user.uid);
     return profile && profile.role === 'student';
+}
+
+// Update user profile
+export async function updateUserProfile(newName) {
+    const user = getCurrentUser();
+    if (!user) throw new Error("No user logged in");
+
+    // Update Firebase Auth
+    await updateProfile(user, { displayName: newName });
+
+    // Update Firestore Profile
+    await updateDoc(doc(db, 'users', user.uid), {
+        displayName: newName
+    });
+    
+    return true;
 }
