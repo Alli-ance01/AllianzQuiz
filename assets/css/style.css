@@ -200,6 +200,121 @@ a {
     font-weight: 600;
 }
 
+/* ==================== NAV ==================== */
+.main-nav {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+}
+
+.brand {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-link-btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.9rem;
+}
+
+.nav-mobile-controls {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hamburger-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.hamburger-btn:hover { background: var(--border-color); }
+
+.hamburger-btn span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text-color);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-menu {
+    display: none;
+    flex-direction: column;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    padding: 0.5rem 1.5rem 1rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.mobile-menu.open { display: flex; }
+
+.mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 0.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color);
+    transition: color 0.2s;
+}
+
+.mobile-menu-item:last-child { border-bottom: none; }
+.mobile-menu-item:hover { color: var(--primary-color); }
+
+.mobile-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+}
+
+@media (max-width: 640px) {
+    .nav-links { display: none; }
+    .nav-mobile-controls { display: flex; }
+}
+
 .quiz-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
