@@ -409,6 +409,7 @@ async function executeSubmit() {
             scoring: q.scoring || 'exact',
             selectedOption: selected !== undefined ? (q.type === 'sa' ? selected : q.options[selected]) : null,
             correctKey: q.type === 'sa' ? (q.scoring === 'manual' ? 'Pending Review' : (q.correctText || null)) : (q.options[q.correct] || null),
+            explanation: q.explanation || null,
             isCorrect: isCorrect,
             status: status
         };

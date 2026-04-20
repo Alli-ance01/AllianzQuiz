@@ -189,6 +189,10 @@ window.updateCorrectText = function (index, text) {
     questions[index].correctText = text;
 };
 
+window.updateExplanation = function (index, text) {
+    questions[index].explanation = text;
+};
+
 window.setType = function (index, type) {
     questions[index].type = type;
     if (type === 'tf') {
@@ -284,6 +288,10 @@ function renderQuestions() {
                 <textarea class="q-text" placeholder="Type your question here..." oninput="updateQuestionText(${qIdx}, this.value)" required style="width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text-color); font-family: inherit; margin-bottom: 0.5rem; resize: vertical;">${q.text}</textarea>
             </div>
             ${specificInputs}
+            <div class="input-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <label>Explanation <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400; margin-left: 0.5rem;">(Optional - shown when reviewing answers)</span></label>
+                <textarea class="q-explanation" placeholder="Provide an explanation for the correct answer..." oninput="updateExplanation(${qIdx}, this.value)" style="width: 100%; min-height: 60px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text-color); font-family: inherit; resize: vertical;">${q.explanation || ''}</textarea>
+            </div>
         `;
         container.appendChild(qDiv);
     });
