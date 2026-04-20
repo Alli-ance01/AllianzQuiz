@@ -385,25 +385,29 @@ function init() {
             showLogin();
         }
     });
+
+    // Login Form Submission
+    const loginForm = document.getElementById('ownerLoginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const key = document.getElementById('accessKey').value;
+
+            // The access key IS the password for your owner account
+            try {
+                await signInWithEmailAndPassword(auth, OWNER_EMAIL, key);
+                // Auth state change will trigger showDashboard
+            } catch (error) {
+                console.error('Login error:', error);
+                Swal.fire('Access Denied', 'Invalid access key. Please ensure the Owner Account is created in Firebase.', 'error');
+            }
+        });
+    }
 }
 
 function showLogin() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('dashboardScreen').style.display = 'none';
-
-    document.getElementById('ownerLoginForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const key = document.getElementById('accessKey').value;
-
-        // The access key IS the password for your owner account
-        try {
-            await signInWithEmailAndPassword(auth, OWNER_EMAIL, key);
-            // Auth state change will trigger showDashboard
-        } catch (error) {
-            console.error('Login error:', error);
-            Swal.fire('Access Denied', 'Invalid access key.', 'error');
-        }
-    });
 }
 
 async function showDashboard() {
