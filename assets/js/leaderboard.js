@@ -24,7 +24,10 @@ async function initLeaderboard() {
     selector.addEventListener('change', loadLeaderboardData);
 
     try {
-        publicQuizzes = await getPublicQuizzes();
+        const dbQuizzes = await getPublicQuizzes();
+        // Merge legacy quizzes (myData from data.js) with Firestore quizzes
+        publicQuizzes = typeof myData !== 'undefined' ? [...myData, ...dbQuizzes] : dbQuizzes;
+        
         if (publicQuizzes.length > 0) {
             publicQuizzes.forEach(q => {
                 const option = document.createElement('option');
