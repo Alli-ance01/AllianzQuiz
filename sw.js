@@ -1,15 +1,17 @@
-const CACHE_NAME = 'allianz-quiz-v2';
+const CACHE_NAME = 'allianz-quiz-v3';
 const ASSETS_TO_CACHE = [
     'index.html',
     'dashboard.html',
     'admin.html',
     'quiz.html',
     'result.html',
+    'leaderboard.html',
     'assets/css/style.css',
     'assets/js/logic.js',
     'assets/js/script.js',
     'assets/js/admin.js',
     'assets/js/quiz.js',
+    'assets/js/leaderboard.js',
     'assets/js/calculator.js',
     'assets/js/firebase-config.js',
     'assets/js/firebase-auth.js',
@@ -20,6 +22,7 @@ const ASSETS_TO_CACHE = [
 
 // Install Event
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log('Caching shell assets');
@@ -35,7 +38,7 @@ self.addEventListener('activate', (event) => {
             return Promise.all(
                 keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
             );
-        })
+        }).then(() => self.clients.claim())
     );
 });
 

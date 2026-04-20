@@ -68,7 +68,7 @@ onAuthChange(async (user) => {
         return;
     }
 
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'teacher')) {
+    if (!profile || (profile.role !== 'admin' && profile.role !== 'teacher' && profile.role !== 'owner')) {
         // Not an admin, redirect to student dashboard
         window.location.href = 'dashboard.html';
         return;
