@@ -240,8 +240,8 @@ function renderQuestions() {
             <button type="button" class="remove-q-btn" onclick="removeQuestion(${qIdx})">Remove</button>
             ${typeControls}
             <div class="input-group">
-                <label>Question ${qIdx + 1}</label>
-                <input type="text" class="q-text" placeholder="Question text" value="${q.text}" oninput="updateQuestionText(${qIdx}, this.value)" required>
+                <label>Question ${qIdx + 1} <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400; margin-left: 0.5rem;">(Supports Markdown: **bold**, *italic*, \`code\`)</span></label>
+                <textarea class="q-text" placeholder="Type your question here..." oninput="updateQuestionText(${qIdx}, this.value)" required style="width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text-color); font-family: inherit; margin-bottom: 0.5rem; resize: vertical;">${q.text}</textarea>
             </div>
             ${specificInputs}
         `;

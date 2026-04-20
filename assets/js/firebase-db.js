@@ -237,3 +237,48 @@ export async function gradeQuestion(submissionId, questionId, isCorrect) {
 
     return { score, pending, percentage };
 }
+
+export async function getTopSubmissionsByQuiz(quizId, limitCount = 20) {
+    const q = query(
+        collection(db, 'attempts'),
+        where('quizId', '==', quizId)
+    );
+    const snapshot = await getDocs(q);
+    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Sort by score descending, then time taken ascending
+    docs.sort((a, b) => {
+        if (b.score !== a.score) {
+            return b.score - a.score;
+        }
+        // Parse timeTaken string to seconds for tie-breaking
+        const getSeconds = (timeStr) => {
+            if (!timeStr || timeStr === 'N/A') return Infinity;
+            if (timeStr.includes('s') && !timeStr.includes('m')) return parseInt(timeStr);
+            let m = 0, s = 0;
+            const mMatch = timeStr.match(/(\d+)m/);
+            const sMatch = timeStr.match(/(\d+)s/);
+            if (mMatch) m = parseInt(mMatch[1]);
+            if (sMatch) s = parseInt(sMatch[1]);
+            return m * 60 + s;
+        };
+        return getSeconds(a.timeTaken) - getSeconds(b.timeTaken);
+    });
+    
+    // Return unique users only (keep highest score per user)
+    const uniqueUsers = [];
+    const seenUserIds = new Set();
+    
+    for (const doc of docs) {
+        if (doc.userId && !seenUserIds.has(doc.userId)) {
+            seenUserIds.add(doc.userId);
+            uniqueUsers.push(doc);
+        } else if (!doc.userId) {
+            // Anonymous submissions
+            uniqueUsers.push(doc);
+        }
+        if (uniqueUsers.length >= limitCount) break;
+    }
+    
+    return uniqueUsers;
+}

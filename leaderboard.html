@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - AllianzQuiz</title>
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <link rel="apple-touch-icon" href="assets/img/logo.png">
+
+    <!-- SEO / Open Graph / Twitter -->
+    <meta property="og:title" content="Leaderboard - AllianzQuiz">
+    <meta property="og:description" content="View the top scores and rankings on AllianzQuiz.">
+    <meta property="og:image" content="assets/img/og-image.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Leaderboard - AllianzQuiz">
+    <meta name="twitter:description" content="View the top scores and rankings on AllianzQuiz.">
+    <meta name="twitter:image" content="assets/img/og-image.png">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .leaderboard-table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-weight: 700;
+            background: var(--secondary-bg);
+            color: var(--secondary-text);
+        }
+
+        .rank-1 { background: #FCD34D; color: #92400E; }
+        .rank-2 { background: #E5E7EB; color: #374151; }
+        .rank-3 { background: #FDBA74; color: #9A3412; }
+    </style>
+</head>
+
+<body>
+    <nav class="main-nav">
+        <div class="container nav-content">
+            <div class="brand">
+                <a href="dashboard.html" style="color: inherit;"><span>🎓</span> AllianzQuiz</a>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <a href="dashboard.html" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">Dashboard</a>
+                <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="margin-top: 2rem; padding-bottom: 4rem; max-width: 900px;">
+        <div class="dashboard-header" style="flex-direction: row; justify-content: space-between;">
+            <div>
+                <h1 style="display: flex; align-items: center; gap: 0.5rem;">🏆 Leaderboard</h1>
+                <p style="color: var(--text-muted);">See how you stack up against the competition</p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 2rem;">
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 500; margin-bottom: 0.5rem; display: block;">Select Quiz</label>
+                <select id="quizSelector" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--text-color); font-size: 1rem;">
+                    <option value="">-- Select a quiz to view rankings --</option>
+                </select>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Rank</th>
+                            <th>Student</th>
+                            <th>Score</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+                                Select a quiz to view the leaderboard.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="assets/js/leaderboard.js"></script>
+</body>
+
+</html>

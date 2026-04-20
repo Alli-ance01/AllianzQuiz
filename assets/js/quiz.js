@@ -221,7 +221,13 @@ function loadQ(index) {
     document.getElementById('currentQNum').textContent = index + 1;
 
     const question = myQuizData.questions[index];
-    document.getElementById('questionText').textContent = question.text;
+    
+    // Support Rich Text (Markdown) for Question
+    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+        document.getElementById('questionText').innerHTML = DOMPurify.sanitize(marked.parse(question.text));
+    } else {
+        document.getElementById('questionText').textContent = question.text;
+    }
 
     const bar = document.getElementById('progressBar');
     const percent = ((index + 1) / myQuizData.questions.length) * 100;
@@ -250,10 +256,16 @@ function loadQ(index) {
 
         question._shuffledOptions.forEach(opt => {
             const isSelected = myAnswers[question.id] === opt.idx;
+            
+            // Render option text (supporting inline markdown)
+            const optionContent = (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') 
+                ? DOMPurify.sanitize(marked.parseInline(opt.text)) 
+                : opt.text;
+                
             html += `
                 <div class="option-card ${isSelected ? 'selected' : ''}" onclick="selAns(${question.id}, ${opt.idx})">
                     <div class="option-circle"></div>
-                    <div>${opt.text}</div>
+                    <div>${optionContent}</div>
                 </div>
             `;
         });

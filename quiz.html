@@ -23,6 +23,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Rich Text Formatting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 
 <body style="padding-top: 60px;" class="no-select">
@@ -48,7 +51,7 @@
                 style="width: 100%; margin-top: 2rem; border: 2px solid red; color: red;">Submit</button>
         </aside>
         <section class="question-area">
-            <h2 id="questionText" style="margin-bottom: 1.5rem;">Loading...</h2>
+            <h2 id="questionText" class="markdown-content" style="margin-bottom: 1.5rem;">Loading...</h2>
             <div id="optionsContainer" class="option-group"></div>
             <div class="nav-controls">
                 <button onclick="prevQ()" id="prevBtn" class="btn" aria-label="Previous question">Prev</button>
