@@ -6,7 +6,10 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -107,5 +110,19 @@ export async function updateUserProfile(newName) {
         displayName: newName
     });
     
+    return true;
+}
+
+// Change user password (requires re-authentication for security)
+export async function changeUserPassword(currentPassword, newPassword) {
+    const user = getCurrentUser();
+    if (!user) throw new Error("No user logged in");
+
+    // Re-authenticate first (Firebase requires this for sensitive operations)
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+
+    // Now update the password
+    await updatePassword(user, newPassword);
     return true;
 }

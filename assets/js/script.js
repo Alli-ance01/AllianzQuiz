@@ -212,3 +212,49 @@ window.editProfile = async function () {
         }
     }
 };
+
+window.changePassword = async function () {
+    // Step 1: current password
+    const { value: currentPassword } = await Swal.fire({
+        title: 'Change Password',
+        text: 'Enter your current password to continue',
+        input: 'password',
+        inputPlaceholder: 'Current password',
+        inputAttributes: { autocomplete: 'current-password' },
+        showCancelButton: true,
+        confirmButtonText: 'Next →',
+        inputValidator: (v) => !v && 'Please enter your current password'
+    });
+    if (!currentPassword) return;
+
+    // Step 2: new password + confirmation
+    const { value: formValues } = await Swal.fire({
+        title: 'New Password',
+        html:
+            '<input id="swal-new-pass" type="password" class="swal2-input" placeholder="New password (min 6 chars)" autocomplete="new-password">' +
+            '<input id="swal-confirm-pass" type="password" class="swal2-input" placeholder="Confirm new password" autocomplete="new-password">',
+        showCancelButton: true,
+        confirmButtonText: 'Change Password',
+        focusConfirm: false,
+        preConfirm: () => {
+            const np = document.getElementById('swal-new-pass').value;
+            const cp = document.getElementById('swal-confirm-pass').value;
+            if (!np || np.length < 6) { Swal.showValidationMessage('Password must be at least 6 characters'); return false; }
+            if (np !== cp) { Swal.showValidationMessage('Passwords do not match'); return false; }
+            return { newPassword: np };
+        }
+    });
+    if (!formValues) return;
+
+    try {
+        const { changeUserPassword } = await import('./firebase-auth.js');
+        await changeUserPassword(currentPassword, formValues.newPassword);
+        Swal.fire({ icon: 'success', title: 'Password Changed!', text: 'Your password has been updated.', timer: 2000, showConfirmButton: false });
+    } catch (error) {
+        console.error('Password change error:', error);
+        const msg = error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential'
+            ? 'Your current password is incorrect.'
+            : 'Failed to change password. Please try again.';
+        Swal.fire({ icon: 'error', title: 'Error', text: msg });
+    }
+};
