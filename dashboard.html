@@ -28,27 +28,74 @@
 <body>
     <nav class="main-nav">
         <div class="container nav-content">
-            <div class="brand">
-                <span>🎓</span> AllianzQuiz
-            </div>
+            <!-- Brand -->
+            <a href="dashboard.html" class="brand">
+                <div class="brand-icon">🎓</div>
+                <span class="brand-text">Allianz<span class="brand-accent">Quiz</span></span>
+            </a>
+
             <!-- Desktop nav links -->
             <div class="nav-links">
-                <a href="leaderboard.html" class="btn btn-secondary nav-link-btn">🏆 Leaderboards</a>
-                <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
-                <button onclick="logout()" class="btn btn-secondary nav-link-btn" aria-label="Logout">Logout</button>
+                <a href="leaderboard.html" class="nav-pill">
+                    <span class="nav-pill-icon">🏆</span> Leaderboards
+                </a>
+                <button id="themeToggleBtn" class="nav-icon-btn theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">🌙</button>
+
+                <!-- Profile dropdown trigger -->
+                <div class="nav-profile" id="navProfileDesktop">
+                    <button class="nav-avatar-btn" id="navAvatarBtn" aria-label="Profile menu">
+                        <span id="navAvatarInitial">U</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="opacity:0.6"><path d="M6 8L1 3h10z"/></svg>
+                    </button>
+                    <div class="nav-dropdown" id="navDropdown">
+                        <div class="nav-dropdown-header">
+                            <div class="nav-dropdown-avatar" id="navDropdownAvatar">U</div>
+                            <div>
+                                <div class="nav-dropdown-name" id="navDropdownName">User</div>
+                                <div class="nav-dropdown-email" id="navDropdownEmail">user@example.com</div>
+                            </div>
+                        </div>
+                        <div class="nav-dropdown-divider"></div>
+                        <button onclick="editProfile(); closeNavDropdown();" class="nav-dropdown-item">✏️ Edit Profile</button>
+                        <button onclick="changePassword(); closeNavDropdown();" class="nav-dropdown-item">🔒 Change Password</button>
+                        <div class="nav-dropdown-divider"></div>
+                        <button onclick="logout()" class="nav-dropdown-item nav-dropdown-logout">🚪 Logout</button>
+                    </div>
+                </div>
             </div>
-            <!-- Mobile: theme toggle always visible + hamburger -->
+
+            <!-- Mobile controls -->
             <div class="nav-mobile-controls">
-                <button id="themeToggleBtnMobile" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
-                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">
+                <button id="themeToggleBtnMobile" class="nav-icon-btn theme-toggle" aria-label="Toggle theme">🌙</button>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
                     <span></span><span></span><span></span>
                 </button>
             </div>
         </div>
-        <!-- Mobile dropdown drawer -->
+
+        <!-- Mobile drawer -->
         <div class="mobile-menu" id="mobileMenu">
-            <a href="leaderboard.html" class="mobile-menu-item">🏆 Leaderboards</a>
-            <button onclick="logout()" class="mobile-menu-item mobile-menu-btn" aria-label="Logout">🚪 Logout</button>
+            <div class="mobile-menu-profile">
+                <div class="mobile-menu-avatar" id="mobileMenuAvatar">U</div>
+                <div>
+                    <div class="mobile-menu-name" id="mobileMenuName">User</div>
+                    <div class="mobile-menu-email" id="mobileMenuEmail">user@example.com</div>
+                </div>
+            </div>
+            <div class="mobile-menu-divider"></div>
+            <a href="leaderboard.html" class="mobile-menu-item">
+                <span class="mobile-menu-icon">🏆</span> Leaderboards
+            </a>
+            <button onclick="editProfile(); closeMobileMenu();" class="mobile-menu-item mobile-menu-btn">
+                <span class="mobile-menu-icon">✏️</span> Edit Profile
+            </button>
+            <button onclick="changePassword(); closeMobileMenu();" class="mobile-menu-item mobile-menu-btn">
+                <span class="mobile-menu-icon">🔒</span> Change Password
+            </button>
+            <div class="mobile-menu-divider"></div>
+            <button onclick="logout()" class="mobile-menu-item mobile-menu-btn mobile-menu-logout">
+                <span class="mobile-menu-icon">🚪</span> Logout
+            </button>
         </div>
     </nav>
     <main class="container" style="margin-top: 2rem; padding-bottom: 2rem;">
@@ -96,34 +143,70 @@
     <script src="assets/js/data.js"></script>
     <script type="module" src="assets/js/script.js"></script>
     <script>
-        // Hamburger menu toggle
-        document.getElementById('hamburgerBtn').addEventListener('click', function () {
+        // ---- Hamburger ----
+        document.getElementById('hamburgerBtn').addEventListener('click', function (e) {
+            e.stopPropagation();
             const menu = document.getElementById('mobileMenu');
             const isOpen = menu.classList.toggle('open');
             this.classList.toggle('open', isOpen);
         });
 
-        // Mobile theme toggle mirrors the desktop one
+        window.closeMobileMenu = function () {
+            document.getElementById('mobileMenu').classList.remove('open');
+            document.getElementById('hamburgerBtn').classList.remove('open');
+        };
+
+        // ---- Profile dropdown ----
+        document.getElementById('navAvatarBtn').addEventListener('click', function (e) {
+            e.stopPropagation();
+            document.getElementById('navDropdown').classList.toggle('open');
+        });
+
+        window.closeNavDropdown = function () {
+            document.getElementById('navDropdown').classList.remove('open');
+        };
+
+        // ---- Close both on outside click ----
+        document.addEventListener('click', function (e) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const hamburger = document.getElementById('hamburgerBtn');
+            const dropdown = document.getElementById('navDropdown');
+            const avatarBtn = document.getElementById('navAvatarBtn');
+
+            if (!mobileMenu.contains(e.target) && !hamburger.contains(e.target)) {
+                mobileMenu.classList.remove('open');
+                hamburger.classList.remove('open');
+            }
+            if (!dropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // ---- Sync theme toggle ----
         document.getElementById('themeToggleBtnMobile').addEventListener('click', function () {
             let current = localStorage.getItem('cbt_theme') || 'light';
             let next = current === 'light' ? 'dark' : 'light';
             localStorage.setItem('cbt_theme', next);
             document.documentElement.setAttribute('data-theme', next);
-            const icon = next === 'light' ? '🌙' : '☀️';
-            document.getElementById('themeToggleBtnMobile').innerHTML = icon;
+            const icon = next === 'dark' ? '☀️' : '🌙';
+            this.innerHTML = icon;
             const desktopBtn = document.getElementById('themeToggleBtn');
             if (desktopBtn) desktopBtn.innerHTML = icon;
         });
 
-        // Close menu when clicking outside
-        document.addEventListener('click', function (e) {
-            const menu = document.getElementById('mobileMenu');
-            const btn = document.getElementById('hamburgerBtn');
-            if (!menu.contains(e.target) && !btn.contains(e.target)) {
-                menu.classList.remove('open');
-                btn.classList.remove('open');
-            }
-        });
+        // ---- Populate nav profile info (called from script.js after auth) ----
+        window.updateNavProfile = function (name, email) {
+            const initial = (name || 'U').charAt(0).toUpperCase();
+            // desktop
+            document.getElementById('navAvatarInitial').textContent = initial;
+            document.getElementById('navDropdownAvatar').textContent = initial;
+            document.getElementById('navDropdownName').textContent = name || 'User';
+            document.getElementById('navDropdownEmail').textContent = email || '';
+            // mobile
+            document.getElementById('mobileMenuAvatar').textContent = initial;
+            document.getElementById('mobileMenuName').textContent = name || 'User';
+            document.getElementById('mobileMenuEmail').textContent = email || '';
+        };
     </script>
 </body>
 

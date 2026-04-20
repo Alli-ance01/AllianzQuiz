@@ -43,6 +43,11 @@ onAuthChange(async (user) => {
     document.getElementById('userEmail').textContent = profile?.email || user.email;
     document.getElementById('userAvatar').textContent = (profile?.displayName || 'U').charAt(0).toUpperCase();
 
+    // Populate premium nav profile
+    if (typeof window.updateNavProfile === 'function') {
+        window.updateNavProfile(profile?.displayName, profile?.email || user.email);
+    }
+
     // Load quizzes and history
     await loadQuizzes();
     await loadHistory();
