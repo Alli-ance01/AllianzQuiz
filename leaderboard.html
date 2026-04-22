@@ -66,13 +66,74 @@
 <body>
     <nav class="main-nav">
         <div class="container nav-content">
-            <div class="brand">
-                <a href="dashboard.html" style="color: inherit;"><span>🎓</span> AllianzQuiz</a>
+            <!-- Brand -->
+            <a href="dashboard.html" class="brand">
+                <div class="brand-icon">🎓</div>
+                <span class="brand-text">Allianz<span class="brand-accent">Quiz</span></span>
+            </a>
+
+            <!-- Desktop nav links -->
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-pill">
+                    Dashboard
+                </a>
+                <button id="themeToggleBtn" class="nav-icon-btn theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">🌙</button>
+
+                <!-- Profile dropdown trigger -->
+                <div class="nav-profile" id="navProfileDesktop">
+                    <button class="nav-avatar-btn" id="navAvatarBtn" aria-label="Profile menu">
+                        <span id="navAvatarInitial">U</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="opacity:0.6"><path d="M6 8L1 3h10z"/></svg>
+                    </button>
+                    <div class="nav-dropdown" id="navDropdown">
+                        <div class="nav-dropdown-header">
+                            <div class="nav-dropdown-avatar" id="navDropdownAvatar">U</div>
+                            <div>
+                                <div class="nav-dropdown-name" id="navDropdownName">User</div>
+                                <div class="nav-dropdown-email" id="navDropdownEmail">user@example.com</div>
+                            </div>
+                        </div>
+                        <div class="nav-dropdown-divider"></div>
+                        <button onclick="editProfile(); closeNavDropdown();" class="nav-dropdown-item">✏️ Edit Profile</button>
+                        <button onclick="changePassword(); closeNavDropdown();" class="nav-dropdown-item">🔒 Change Password</button>
+                        <div class="nav-dropdown-divider"></div>
+                        <button onclick="logout()" class="nav-dropdown-item nav-dropdown-logout">🚪 Logout</button>
+                    </div>
+                </div>
             </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <a href="dashboard.html" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">Dashboard</a>
-                <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+
+            <!-- Mobile controls -->
+            <div class="nav-mobile-controls">
+                <button id="themeToggleBtnMobile" class="nav-icon-btn theme-toggle" aria-label="Toggle theme">🌙</button>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile drawer -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-profile">
+                <div class="mobile-menu-avatar" id="mobileMenuAvatar">U</div>
+                <div>
+                    <div class="mobile-menu-name" id="mobileMenuName">User</div>
+                    <div class="mobile-menu-email" id="mobileMenuEmail">user@example.com</div>
+                </div>
+            </div>
+            <div class="mobile-menu-divider"></div>
+            <a href="dashboard.html" class="mobile-menu-item">
+                Dashboard
+            </a>
+            <button onclick="editProfile(); closeMobileMenu();" class="mobile-menu-item mobile-menu-btn">
+                <span class="mobile-menu-icon">✏️</span> Edit Profile
+            </button>
+            <button onclick="changePassword(); closeMobileMenu();" class="mobile-menu-item mobile-menu-btn">
+                <span class="mobile-menu-icon">🔒</span> Change Password
+            </button>
+            <div class="mobile-menu-divider"></div>
+            <button onclick="logout()" class="mobile-menu-item mobile-menu-btn mobile-menu-logout">
+                <span class="mobile-menu-icon">🚪</span> Logout
+            </button>
         </div>
     </nav>
 
@@ -116,6 +177,10 @@
 
     <script src="assets/js/data.js"></script>
     <script type="module" src="assets/js/leaderboard.js"></script>
+    <script type="module">
+        import { initNavigation } from './assets/js/nav-handler.js';
+        initNavigation();
+    </script>
 </body>
 
 </html>

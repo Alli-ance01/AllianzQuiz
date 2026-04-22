@@ -16,6 +16,15 @@ onAuthChange(async (user) => {
     }
 
     setupStatusMonitoring(user);
+    
+    // Update Nav Profile
+    import('./firebase-auth.js').then(async ({ getUserProfile }) => {
+        const profile = await getUserProfile(user.uid);
+        if (profile && typeof window.updateNavProfile === 'function') {
+            window.updateNavProfile(profile.displayName, profile.email);
+        }
+    });
+
     await initLeaderboard();
 });
 

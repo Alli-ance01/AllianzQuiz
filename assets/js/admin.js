@@ -80,6 +80,11 @@ onAuthChange(async (user) => {
     document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.displayName || 'Admin'}!`;
     document.getElementById('adminEmail').textContent = profile.email;
 
+    // Update Nav Profile
+    if (typeof window.updateNavProfile === 'function') {
+        window.updateNavProfile(profile.displayName, profile.email);
+    }
+
     // Load admin's quizzes
     await loadMyQuizzes();
 

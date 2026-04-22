@@ -107,12 +107,8 @@
             <div class="user-info">
                 <div id="userAvatar" class="avatar">U</div>
                 <div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div id="userName" style="font-weight: 600;">User</div>
-                        <button onclick="editProfile()" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 0.8rem;" aria-label="Edit Profile">✏️ Edit</button>
-                    </div>
-                    <div id="userEmail" style="font-size: 0.8rem; color: grey;">user@example.com</div>
-                    <button onclick="changePassword()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.75rem; padding: 0; margin-top: 0.2rem;" aria-label="Change Password">🔒 Change Password</button>
+                    <div id="userName" style="font-weight: 600;">User</div>
+                    <div id="userEmail" style="font-size: 0.8rem; color: var(--text-muted);">user@example.com</div>
                 </div>
             </div>
         </div>
@@ -142,71 +138,9 @@
     </main>
     <script src="assets/js/data.js"></script>
     <script type="module" src="assets/js/script.js"></script>
-    <script>
-        // ---- Hamburger ----
-        document.getElementById('hamburgerBtn').addEventListener('click', function (e) {
-            e.stopPropagation();
-            const menu = document.getElementById('mobileMenu');
-            const isOpen = menu.classList.toggle('open');
-            this.classList.toggle('open', isOpen);
-        });
-
-        window.closeMobileMenu = function () {
-            document.getElementById('mobileMenu').classList.remove('open');
-            document.getElementById('hamburgerBtn').classList.remove('open');
-        };
-
-        // ---- Profile dropdown ----
-        document.getElementById('navAvatarBtn').addEventListener('click', function (e) {
-            e.stopPropagation();
-            document.getElementById('navDropdown').classList.toggle('open');
-        });
-
-        window.closeNavDropdown = function () {
-            document.getElementById('navDropdown').classList.remove('open');
-        };
-
-        // ---- Close both on outside click ----
-        document.addEventListener('click', function (e) {
-            const mobileMenu = document.getElementById('mobileMenu');
-            const hamburger = document.getElementById('hamburgerBtn');
-            const dropdown = document.getElementById('navDropdown');
-            const avatarBtn = document.getElementById('navAvatarBtn');
-
-            if (!mobileMenu.contains(e.target) && !hamburger.contains(e.target)) {
-                mobileMenu.classList.remove('open');
-                hamburger.classList.remove('open');
-            }
-            if (!dropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
-                dropdown.classList.remove('open');
-            }
-        });
-
-        // ---- Sync theme toggle ----
-        document.getElementById('themeToggleBtnMobile').addEventListener('click', function () {
-            let current = localStorage.getItem('cbt_theme') || 'light';
-            let next = current === 'light' ? 'dark' : 'light';
-            localStorage.setItem('cbt_theme', next);
-            document.documentElement.setAttribute('data-theme', next);
-            const icon = next === 'dark' ? '☀️' : '🌙';
-            this.innerHTML = icon;
-            const desktopBtn = document.getElementById('themeToggleBtn');
-            if (desktopBtn) desktopBtn.innerHTML = icon;
-        });
-
-        // ---- Populate nav profile info (called from script.js after auth) ----
-        window.updateNavProfile = function (name, email) {
-            const initial = (name || 'U').charAt(0).toUpperCase();
-            // desktop
-            document.getElementById('navAvatarInitial').textContent = initial;
-            document.getElementById('navDropdownAvatar').textContent = initial;
-            document.getElementById('navDropdownName').textContent = name || 'User';
-            document.getElementById('navDropdownEmail').textContent = email || '';
-            // mobile
-            document.getElementById('mobileMenuAvatar').textContent = initial;
-            document.getElementById('mobileMenuName').textContent = name || 'User';
-            document.getElementById('mobileMenuEmail').textContent = email || '';
-        };
+    <script type="module">
+        import { initNavigation } from './assets/js/nav-handler.js';
+        initNavigation();
     </script>
 </body>
 
