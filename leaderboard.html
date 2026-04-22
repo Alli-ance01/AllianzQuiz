@@ -4,6 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (async function() {
+            const VERSION = '6';
+            if (localStorage.getItem('allianz_quiz_v') !== VERSION) {
+                if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    for(let r of regs) await r.unregister();
+                    const keys = await caches.keys();
+                    for(let k of keys) await caches.delete(k);
+                }
+                localStorage.setItem('allianz_quiz_v', VERSION);
+                window.location.reload();
+            }
+        })();
+    </script>
     <title>Leaderboard - AllianzQuiz</title>
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <link rel="apple-touch-icon" href="assets/img/logo.png">
