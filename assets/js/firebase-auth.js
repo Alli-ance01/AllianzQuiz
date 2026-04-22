@@ -97,18 +97,39 @@ export async function isStudent() {
     return profile && profile.role === 'student';
 }
 
-// Update user profile
+// Update user profile and propagate name change to all previous attempts
 export async function updateUserProfile(newName) {
     const user = getCurrentUser();
     if (!user) throw new Error("No user logged in");
 
-    // Update Firebase Auth
+    // 1. Update Firebase Auth Profile
     await updateProfile(user, { displayName: newName });
 
-    // Update Firestore Profile
-    await updateDoc(doc(db, 'users', user.uid), {
+    // 2. Update Firestore User Document
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, {
         displayName: newName
     });
+
+    // 3. Propagate name change to all previous attempts (for Leaderboard consistency)
+    try {
+        const { collection, query, where, getDocs, writeBatch } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const attemptsRef = collection(db, 'attempts');
+        const q = query(attemptsRef, where('userId', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const batch = writeBatch(db);
+            querySnapshot.forEach((doc) => {
+                batch.update(doc.ref, { userName: newName });
+            });
+            await batch.commit();
+        }
+    } catch (error) {
+        console.error("Error propagating name change to attempts:", error);
+        // We don't throw here to avoid blocking the main profile update, 
+        // but we log it for debugging.
+    }
     
     return true;
 }
