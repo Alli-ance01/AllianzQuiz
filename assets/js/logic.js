@@ -299,7 +299,11 @@ function registerSW() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker registered:', reg))
+                .then(reg => {
+                    console.log('Service Worker registered:', reg);
+                    // Force update check
+                    reg.update();
+                })
                 .catch(err => console.log('Service Worker registration failed:', err));
         });
     }

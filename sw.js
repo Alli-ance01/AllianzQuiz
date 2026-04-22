@@ -1,4 +1,4 @@
-const CACHE_NAME = 'allianz-quiz-v5';
+const CACHE_NAME = 'allianz-quiz-v6';
 const ASSETS_TO_CACHE = [
     'index.html',
     'dashboard.html',
@@ -17,6 +17,7 @@ const ASSETS_TO_CACHE = [
     'assets/js/firebase-auth.js',
     'assets/js/firebase-db.js',
     'assets/js/ui-helpers.js',
+    'assets/js/nav-handler.js',
     'assets/img/app_icon_512.png'
 ];
 
@@ -42,11 +43,12 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch Event
+// Fetch Event - Network First Strategy
+// Always try to fetch from network first, fall back to cache if offline
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
+        fetch(event.request).catch(() => {
+            return caches.match(event.request);
         })
     );
 });
