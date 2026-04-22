@@ -1,4 +1,82 @@
-// nav-handler.js - Shared logic for premium navigation
+// Profile Actions (Available globally)
+window.editProfile = async function () {
+    const currentName = document.getElementById('navDropdownName')?.textContent || 'User';
+    
+    // Use global Swal if available, else try to find it
+    const MySwal = window.Swal || (await import('https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.js')).default;
+    
+    const { value: newName } = await MySwal.fire({
+        title: 'Edit Profile',
+        input: 'text',
+        inputLabel: 'Display Name',
+        inputValue: currentName,
+        showCancelButton: true,
+        inputValidator: (value) => {
+            if (!value) return 'You need to write something!';
+        }
+    });
+
+    if (newName && newName !== currentName) {
+        try {
+            const { updateUserProfile } = await import('./firebase-auth.js');
+            await updateUserProfile(newName);
+            
+            // Update everything immediately
+            const email = document.getElementById('navDropdownEmail')?.textContent || '';
+            if (typeof window.updateNavProfile === 'function') {
+                window.updateNavProfile(newName, email);
+            }
+            
+            MySwal.fire({ icon: 'success', title: 'Success', text: 'Profile updated successfully!', timer: 1500, showConfirmButton: false });
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            MySwal.fire('Error', 'Update Failed', 'error');
+        }
+    }
+};
+
+window.changePassword = async function () {
+    const MySwal = window.Swal || (await import('https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.js')).default;
+    
+    const { value: currentPassword } = await MySwal.fire({
+        title: 'Change Password',
+        text: 'Enter your current password to continue',
+        input: 'password',
+        inputPlaceholder: 'Current password',
+        inputAttributes: { autocomplete: 'current-password' },
+        showCancelButton: true,
+        confirmButtonText: 'Next →',
+        inputValidator: (v) => !v && 'Please enter your current password'
+    });
+    if (!currentPassword) return;
+
+    const { value: formValues } = await MySwal.fire({
+        title: 'New Password',
+        html:
+            '<input id="swal-new-pass" type="password" class="swal2-input" placeholder="New (min 6 chars)" autocomplete="new-password">' +
+            '<input id="swal-confirm-pass" type="password" class="swal2-input" placeholder="Confirm" autocomplete="new-password">',
+        showCancelButton: true,
+        confirmButtonText: 'Change Password',
+        focusConfirm: false,
+        preConfirm: () => {
+            const np = document.getElementById('swal-new-pass').value;
+            const cp = document.getElementById('swal-confirm-pass').value;
+            if (!np || np.length < 6) { MySwal.showValidationMessage('Password too short'); return false; }
+            if (np !== cp) { MySwal.showValidationMessage('Passwords do not match'); return false; }
+            return { newPassword: np };
+        }
+    });
+    if (!formValues) return;
+
+    try {
+        const { changeUserPassword } = await import('./firebase-auth.js');
+        await changeUserPassword(currentPassword, formValues.newPassword);
+        MySwal.fire({ icon: 'success', title: 'Success', text: 'Password updated.', timer: 2000, showConfirmButton: false });
+    } catch (error) {
+        console.error('Password change error:', error);
+        MySwal.fire({ icon: 'error', title: 'Error', text: 'Incorrect current password or update failed.' });
+    }
+};
 
 export function initNavigation() {
     // ---- Hamburger Menu ----
@@ -103,82 +181,6 @@ export function initNavigation() {
             } else if (welcomeMsg.textContent.includes('Welcome')) {
                 welcomeMsg.textContent = "Welcome, " + (name || 'User') + "!";
             }
-        }
-    };
-
-    // ---- Profile Actions ----
-    window.editProfile = async function () {
-        const currentName = document.getElementById('navDropdownName')?.textContent || 'User';
-        
-        const { default: Swal } = await import('https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.js');
-        const { value: newName } = await Swal.fire({
-            title: 'Edit Profile',
-            input: 'text',
-            inputLabel: 'Display Name',
-            inputValue: currentName,
-            showCancelButton: true,
-            inputValidator: (value) => {
-                if (!value) return 'You need to write something!';
-            }
-        });
-
-        if (newName && newName !== currentName) {
-            try {
-                const { updateUserProfile } = await import('./firebase-auth.js');
-                await updateUserProfile(newName);
-                
-                // Update everything immediately
-                const email = document.getElementById('navDropdownEmail')?.textContent || '';
-                window.updateNavProfile(newName, email);
-                
-                Swal.fire({ icon: 'success', title: 'Success', text: 'Profile updated successfully!', timer: 1500, showConfirmButton: false });
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                Swal.fire('Error', 'Update Failed', 'error');
-            }
-        }
-    };
-
-    window.changePassword = async function () {
-        const { default: Swal } = await import('https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.js');
-        
-        const { value: currentPassword } = await Swal.fire({
-            title: 'Change Password',
-            text: 'Enter your current password to continue',
-            input: 'password',
-            inputPlaceholder: 'Current password',
-            inputAttributes: { autocomplete: 'current-password' },
-            showCancelButton: true,
-            confirmButtonText: 'Next →',
-            inputValidator: (v) => !v && 'Please enter your current password'
-        });
-        if (!currentPassword) return;
-
-        const { value: formValues } = await Swal.fire({
-            title: 'New Password',
-            html:
-                '<input id="swal-new-pass" type="password" class="swal2-input" placeholder="New (min 6 chars)" autocomplete="new-password">' +
-                '<input id="swal-confirm-pass" type="password" class="swal2-input" placeholder="Confirm" autocomplete="new-password">',
-            showCancelButton: true,
-            confirmButtonText: 'Change Password',
-            focusConfirm: false,
-            preConfirm: () => {
-                const np = document.getElementById('swal-new-pass').value;
-                const cp = document.getElementById('swal-confirm-pass').value;
-                if (!np || np.length < 6) { Swal.showValidationMessage('Password too short'); return false; }
-                if (np !== cp) { Swal.showValidationMessage('Passwords do not match'); return false; }
-                return { newPassword: np };
-            }
-        });
-        if (!formValues) return;
-
-        try {
-            const { changeUserPassword } = await import('./firebase-auth.js');
-            await changeUserPassword(currentPassword, formValues.newPassword);
-            Swal.fire({ icon: 'success', title: 'Success', text: 'Password updated.', timer: 2000, showConfirmButton: false });
-        } catch (error) {
-            console.error('Password change error:', error);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Incorrect current password or update failed.' });
         }
     };
 }
