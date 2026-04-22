@@ -210,6 +210,12 @@ window.editProfile = async function () {
             document.getElementById('userAvatar').textContent = newName.charAt(0).toUpperCase();
             document.getElementById('welcomeMsg').textContent = "Welcome back, " + newName.split(' ')[0] + "!";
             
+            // Update Premium Nav
+            if (typeof window.updateNavProfile === 'function') {
+                const email = document.getElementById('userEmail').textContent;
+                window.updateNavProfile(newName, email);
+            }
+            
             showSuccess('Profile updated successfully!');
         } catch (error) {
             console.error('Error updating profile:', error);

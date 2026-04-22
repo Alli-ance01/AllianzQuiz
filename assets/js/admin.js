@@ -123,6 +123,12 @@ window.editProfile = async function () {
             // Update DOM
             document.getElementById('welcomeMsg').textContent = `Welcome, ${newName}!`;
             
+            // Update Premium Nav
+            if (typeof window.updateNavProfile === 'function') {
+                const email = document.getElementById('adminEmail').textContent;
+                window.updateNavProfile(newName, email);
+            }
+            
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
