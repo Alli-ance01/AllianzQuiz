@@ -7,7 +7,7 @@ let publicQuizzes = [];
 
 // Initialize Theme
 applyTheme();
-document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+// Note: click listener is handled by nav-handler.js initNavigation() → syncTheme
 
 onAuthChange(async (user) => {
     if (!user) {
