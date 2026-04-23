@@ -154,7 +154,7 @@ let myData = [
             {
                 id: 4,
                 text: "Solve for x: 2x + 5 = 15",
-                options: ["x = 3", "x = 4", "x = 5", "x = 6"],
+                options: ["x = 3", "x = 4", "x = 5", "x = 7"],
                 correct: 2
             },
             {
