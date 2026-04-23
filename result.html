@@ -136,13 +136,7 @@
             if (btn) btn.innerHTML = saved === 'light' ? '🌙' : '☀️';
         }
         applyTheme();
-
-        document.getElementById('themeToggleBtn').addEventListener('click', () => {
-            let current = localStorage.getItem('cbt_theme') || 'light';
-            let next = current === 'light' ? 'dark' : 'light';
-            localStorage.setItem('cbt_theme', next);
-            applyTheme();
-        });
+        // Note: click listener is handled by nav-handler.js initNavigation() → syncTheme
 
         async function renderResult() {
             const params = new URLSearchParams(window.location.search);

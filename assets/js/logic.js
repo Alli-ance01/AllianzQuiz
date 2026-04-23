@@ -180,8 +180,12 @@ function init() {
     applyTheme();
 
     // Theme toggle button
+    // Only add listener here for simple pages (like index.html) that don't use nav-handler.js.
+    // Pages with a full nav (dashboard, admin, result, leaderboard) have themeToggleBtnMobile
+    // and nav-handler.js already registers the click handler for BOTH buttons via syncTheme.
+    // Adding a second listener here causes a double-toggle that cancels itself out on desktop.
     let toggleBtn = document.getElementById('themeToggleBtn');
-    if (toggleBtn) {
+    if (toggleBtn && !document.getElementById('themeToggleBtnMobile')) {
         toggleBtn.addEventListener('click', toggleTheme);
     }
 
