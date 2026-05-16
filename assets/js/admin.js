@@ -76,13 +76,34 @@ onAuthChange(async (user) => {
 
     currentAdminId = user.uid;
 
-    // Update header
-    document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.displayName || 'Admin'}!`;
-    document.getElementById('adminEmail').textContent = profile.email;
+    const displayName = profile.displayName || '';
+    const displayEmail = profile.email || '';
+    const initial = (displayName || 'A').charAt(0).toUpperCase();
 
-    // Update Nav Profile
+    // Update header
+    document.getElementById('welcomeMsg').textContent = `Welcome, ${displayName || 'Admin'}!`;
+    document.getElementById('adminEmail').textContent = displayEmail;
+
+    // Update Nav Profile — set DOM directly first to guarantee it shows the real name,
+    // then also call updateNavProfile if nav-handler.js has already initialised.
     if (typeof window.updateNavProfile === 'function') {
-        window.updateNavProfile(profile.displayName, profile.email);
+        window.updateNavProfile(displayName || 'Admin', displayEmail);
+    } else {
+        // Direct fallback in case nav-handler module hasn't run yet
+        const navInitialEl = document.getElementById('navAvatarInitial');
+        const navDropdownAvatarEl = document.getElementById('navDropdownAvatar');
+        const navDropdownNameEl = document.getElementById('navDropdownName');
+        const navDropdownEmailEl = document.getElementById('navDropdownEmail');
+        const mobileAvatarEl = document.getElementById('mobileMenuAvatar');
+        const mobileNameEl = document.getElementById('mobileMenuName');
+        const mobileEmailEl = document.getElementById('mobileMenuEmail');
+        if (navInitialEl) navInitialEl.textContent = initial;
+        if (navDropdownAvatarEl) navDropdownAvatarEl.textContent = initial;
+        if (navDropdownNameEl) navDropdownNameEl.textContent = displayName || 'Admin';
+        if (navDropdownEmailEl) navDropdownEmailEl.textContent = displayEmail;
+        if (mobileAvatarEl) mobileAvatarEl.textContent = initial;
+        if (mobileNameEl) mobileNameEl.textContent = displayName || 'Admin';
+        if (mobileEmailEl) mobileEmailEl.textContent = displayEmail;
     }
 
     // Load admin's quizzes

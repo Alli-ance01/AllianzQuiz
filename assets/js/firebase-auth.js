@@ -11,7 +11,7 @@ import {
     reauthenticateWithCredential,
     EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Monitor user status in real-time (e.g., to detect if account is disabled)
 export function monitorUserStatus(userId, callback) {
@@ -30,21 +30,30 @@ export function monitorUserStatus(userId, callback) {
 
 // Sign up a new user with email, password, and role
 export async function signUp(email, password, displayName, role = 'student') {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-    // Update Firebase Auth profile
-    await updateProfile(user, { displayName: displayName });
+        // Update Firebase Auth profile
+        await updateProfile(user, { displayName: displayName });
 
-    // Create user profile in Firestore
-    await setDoc(doc(db, 'users', user.uid), {
-        email: email,
-        displayName: displayName,
-        role: role,
-        createdAt: new Date()
-    });
+        // Create user profile in Firestore
+        // Using setDoc with UID as the document ID
+        await setDoc(doc(db, 'users', user.uid), {
+            uid: user.uid,
+            email: email,
+            displayName: displayName,
+            role: role,
+            disabled: false,
+            createdAt: serverTimestamp()
+        });
 
-    return user;
+        console.log("User profile saved to Firestore for UID:", user.uid);
+        return user;
+    } catch (error) {
+        console.error("Detailed Sign Up Error:", error);
+        throw error;
+    }
 }
 
 // Sign in existing user

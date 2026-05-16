@@ -35,6 +35,7 @@ applyTheme();
 let currentAuthMode = 'signin';
 let selectedRole = 'student';
 let userStatusUnsubscribe = null;
+let isSigningUp = false; // Guard flag: prevents onAuthChange from racing against form signup handler
 
 // Switch between Sign In and Sign Up modes
 window.switchAuthMode = function (mode) {
@@ -222,10 +223,13 @@ function init() {
                         throw new Error('Please enter your full name');
                     }
 
+                    // Set guard BEFORE signUp so onAuthChange doesn't race and redirect wrong page
+                    isSigningUp = true;
+
                     await signUp(email, password, displayName, selectedRole);
                     await showSuccess('Account Created!', 'Welcome to AllianzQuiz!');
 
-                    // Redirect based on role
+                    // Redirect based on role (isSigningUp guard prevents onAuthChange from interfering)
                     if (selectedRole === 'admin' || selectedRole === 'teacher') {
                         window.location.href = 'admin.html';
                     } else {
@@ -254,6 +258,7 @@ function init() {
 
             } catch (error) {
                 console.error('Auth error:', error);
+                isSigningUp = false; // Reset guard on failure so login page redirect still works
                 showError(error, currentAuthMode === 'signup' ? 'Signup Failed' : 'Signin Failed');
 
                 submitBtn.disabled = false;
@@ -269,6 +274,9 @@ function init() {
     if (isLoginPage) {
         // On login page, check if already logged in
         onAuthChange(async (user) => {
+            // If the form submit handler is mid-signup, skip this redirect to avoid race condition
+            if (isSigningUp) return;
+
             if (user) {
                 const profile = await getUserProfile(user.uid);
 

@@ -37,15 +37,40 @@ onAuthChange(async (user) => {
 
     currentUserId = user.uid;
 
-    // Load user info
-    document.getElementById('welcomeMsg').textContent = "Welcome back, " + (profile?.displayName || 'User').split(' ')[0] + "!";
-    document.getElementById('userName').textContent = profile?.displayName || 'User';
-    document.getElementById('userEmail').textContent = profile?.email || user.email;
-    document.getElementById('userAvatar').textContent = (profile?.displayName || 'U').charAt(0).toUpperCase();
+    const displayName = profile?.displayName || '';
+    const displayEmail = profile?.email || user.email || '';
+    const firstName = displayName.split(' ')[0] || 'User';
+    const initial = (displayName || 'U').charAt(0).toUpperCase();
 
-    // Populate premium nav profile
+    // Set page-level user info directly — works regardless of nav-handler.js load order
+    const welcomeMsgEl = document.getElementById('welcomeMsg');
+    const userNameEl = document.getElementById('userName');
+    const userEmailEl = document.getElementById('userEmail');
+    const userAvatarEl = document.getElementById('userAvatar');
+    if (welcomeMsgEl) welcomeMsgEl.textContent = `Welcome back, ${firstName}!`;
+    if (userNameEl) userNameEl.textContent = displayName || 'User';
+    if (userEmailEl) userEmailEl.textContent = displayEmail;
+    if (userAvatarEl) userAvatarEl.textContent = initial;
+
+    // Also update the nav dropdown profile if nav-handler has already initialised
     if (typeof window.updateNavProfile === 'function') {
-        window.updateNavProfile(profile?.displayName, profile?.email || user.email);
+        window.updateNavProfile(displayName || 'User', displayEmail);
+    } else {
+        // Nav handler may not be ready yet — update the nav elements directly as a fallback
+        const navInitialEl = document.getElementById('navAvatarInitial');
+        const navDropdownAvatarEl = document.getElementById('navDropdownAvatar');
+        const navDropdownNameEl = document.getElementById('navDropdownName');
+        const navDropdownEmailEl = document.getElementById('navDropdownEmail');
+        const mobileAvatarEl = document.getElementById('mobileMenuAvatar');
+        const mobileNameEl = document.getElementById('mobileMenuName');
+        const mobileEmailEl = document.getElementById('mobileMenuEmail');
+        if (navInitialEl) navInitialEl.textContent = initial;
+        if (navDropdownAvatarEl) navDropdownAvatarEl.textContent = initial;
+        if (navDropdownNameEl) navDropdownNameEl.textContent = displayName || 'User';
+        if (navDropdownEmailEl) navDropdownEmailEl.textContent = displayEmail;
+        if (mobileAvatarEl) mobileAvatarEl.textContent = initial;
+        if (mobileNameEl) mobileNameEl.textContent = displayName || 'User';
+        if (mobileEmailEl) mobileEmailEl.textContent = displayEmail;
     }
 
     // Load quizzes and history

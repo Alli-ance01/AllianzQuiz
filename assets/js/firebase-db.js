@@ -72,7 +72,7 @@ function sortByTimestampDesc(docs) {
 export async function createQuiz(quizData) {
     const quizToSave = {
         ...quizData,
-        createdAt: new Date()
+        createdAt: serverTimestamp()
     };
 
     if (quizData.visibility === 'private') {
